@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="robots" content="noindex">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>cyppan</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+  </head>
+  <body>
+
+    <nav class="navbar">
+      <div class="container">
+        <div class="navbar-brand">
+          <a class="navbar-item" href="/">
+            @cyppan 📚
+          </a>
+          <span class="navbar-burger burger" data-target="navbarMenuHeroA">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </div>
+        <div id="navbarMenuHeroA" class="navbar-menu">
+          <div class="navbar-end">
+            <a class="navbar-item" href="#code">
+              Code
+            </a>
+            <a class="navbar-item" href="#articles">
+              Articles
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <section class="section">
+      <div class="container">
+        <article class="media">
+          <figure class="media-left">
+            <p class="image is-128x128">
+              <img src="https://avatars2.githubusercontent.com/u/1446201?s=400&u=92132a6e30f38aa03abb8c2e72b76d39639a2104&v=4">
+            </p>
+          </figure>
+          <div class="media-content">
+            <h1 class="title">
+              Hello 👋, I’m Cyprien, a freelance developer based near Montpellier in France.
+            </h1>
+            <h2 class="subtitle">
+              I like strength training, reading and I also do some viticulture and agriculture aside (do you know about <a href="https://farm.bot/" target="_blank">farmbot</a>?)
+            </h2>
+            <h2 class="subtitle">
+              I'm more into <strong>backend</strong> and <strong>devops</strong> stuff, feel free to <a href="mailto:contact@cyppan.me">contact me</a> for professional collaboration or thought-provoking discussions about life & cosmos.
+            </h2>
+
+            <p class="buttons" href="https://www.linkedin.com/in/cyprien-pannier-01a64582">
+              <a class="button is-primary">
+                <span class="icon">
+                  <i class="fab fa-linkedin"></i>
+                </span>
+                <span>LinkedIn</span>
+              </a>
+              <a class="button is-primary" href="https://github.com/cyppan">
+                <span class="icon">
+                  <i class="fab fa-github"></i>
+                </span>
+                <span>GitHub</span>
+              </a>
+              <a class="button is-primary" href="https://twitter.com/cyppan">
+                <span class="icon">
+                  <i class="fab fa-twitter"></i>
+                </span>
+                <span>Twitter</span>
+              </a>
+              <a class="button is-primary" href="https://medium.com/@cyppan">
+                <span class="icon">
+                  <i class="fab fa-medium"></i>
+                </span>
+                <span>Medium</span>
+              </a>
+            </p>
+
+            <h2 class="subtitle">
+              You can have a look at some of my <a href="#code">(open source) code ⬇️</a> and <a href="#articles">articles ⬇️</a>. There is more to come, stay tuned.
+            </h2>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h1 class="title"><a id="code"></a># Code</h1>
+      </div>
+      <div class="tile is-ancestor" style="margin-top:10px">
+        <div class="tile is-parent is-vertical">
+          <article class="tile is-child notification box is-light">
+            <p class="title">Grape</p>
+            <p class="subtitle">
+              An opinionated, data-first, graphy Clojure library to build HTTP APIs
+            </p>
+            <div class="content">
+              Combine Clojure efficiency and APIs best practices to ease developers' life. A slightly modified version of it is used in production at BeOp.
+              <br />
+              <a href="https://github.com/cyppan/grape">
+                <span class="icon"><i class="fab fa-github"></i></span>
+                <span>See more</span>
+              </a>
+            </div>
+            <span class="tag is-dark">clojure</span>
+            <span class="tag is-dark">mongodb</span>
+          </article>
+        </div>
+        <div class="tile is-parent">
+          <article class="tile is-child notification box is-light">
+            <p class="title">
+              serve-sequelize
+            </p>
+            <p class="subtitle">For quick node.js REST API prototyping</p>
+            <div class="content">
+              Make use of the great ORM sequelize and expose schema-defined resources safely to the web.
+              I've used this one to do some API prototypes for quick POC at Koba.
+              <br />
+              <a href="https://github.com/cyppan/serve-sequelize">
+                <span class="icon"><i class="fab fa-github"></i></span>
+                <span>See more</span>
+              </a>
+            </div>
+            <span class="tag is-dark">javascript</span>
+            <span class="tag is-dark">node.js</span>
+            <span class="tag is-dark">sql</span>
+          </article>
+        </div>
+        <div class="tile is-parent">
+          <article class="tile is-child notification box is-light">
+            <div class="content">
+              <p class="title">validate-data-tree</p>
+              <p class="subtitle">declarative json validation library used in serve-sequelize.</p>
+              <div class="content">
+                This library aims to validate data structures (input object, possibly with nested objects and arrays), by the mean of data structures (the schema).
+                <br />
+                <a href="https://github.com/cyppan/validate-data-tree">
+                  <span class="icon"><i class="fab fa-github"></i></span>
+                  <span>See more</span>
+                </a>
+              </div>
+              <span class="tag is-dark">javascript</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h1 class="title"><a id="articles"></a># Articles</h1>
+        <div class="content">
+          <h3>
+            <a href="https://medium.com/@cyppan/vers-un-nouveau-mode-dorganisation-du-travail-81ad33d26cb">
+              Vers un nouveau mode d'organisation du travail
+              <span class="icon"><i class="fab fa-medium"></i></span>
+            </a>
+          </h3>
+          <h3>
+            <a href="https://medium.com/@cyppan/pens%C3%A9es-dun-millennial-14f43b13c629">
+              Pensées d'un millennial
+              <span class="icon"><i class="fab fa-medium"></i></span>
+            </a>
+          </h3>
+          <h3>
+            <a href="https://medium.com/@cyppan/dealing-with-long-term-future-for-the-high-functioning-anxious-7910a467f977">
+              Dealing with long-term future for the high functioning anxious
+              <span class="icon"><i class="fab fa-medium"></i></span>
+            </a>
+          </h3>
+          <h3>
+            <a href="https://medium.com/@cyppan/the-fair-enough-strategy-in-life-80ef9dfd0f1b">
+              The "fair enough" strategy in life
+              <span class="icon"><i class="fab fa-medium"></i></span>
+            </a>
+          </h3>
+          <h3>
+            <a href="https://medium.com/quidli/about-fair-multi-party-compensations-in-early-stage-projects-3aebb94a6cd">
+              About fair multi-party compensation in early-stage projects
+              <span class="icon"><i class="fab fa-medium"></i></span>
+            </a>
+          </h3>
+          <h3>
+            <a href="https://medium.com/@cyppan/how-clojure-helps-you-build-powerful-abstractions-a89c25ba573e">
+              How Clojure helps you build powerful abstractions
+              <span class="icon"><i class="fab fa-medium"></i></span>
+            </a>
+          </h3>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="content has-text-centered">
+        <p>
+          Built with Jekyll and Bulma CSS. The source code is licensed
+          <a href="http://opensource.org/licenses/mit-license.php" target="_blank">MIT</a>. The website content
+          is licensed <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY NC SA 4.0</a>.
+        </p>
+      </div>
+    </footer>
+
+    <script type="text/javascript">
+      document.addEventListener('DOMContentLoaded', () => {
+        // Get all "navbar-burger" elements
+        const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+        // Check if there are any navbar burgers
+        if ($navbarBurgers.length > 0) {
+          // Add a click event on each of them
+          $navbarBurgers.forEach( el => {
+            el.addEventListener('click', () => {
+              // Get the target from the "data-target" attribute
+              const target = el.dataset.target;
+              const $target = document.getElementById(target);
+              // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+              el.classList.toggle('is-active');
+              $target.classList.toggle('is-active');
+            });
+          });
+        }
+      });
+    </script>
+
+    <style type="text/css">
+      .content h3 .icon {
+        align-items: inherit;
+        display: inherit;
+        justify-content: inherit;
+      }
+    </style>
+  </body>
+</html>

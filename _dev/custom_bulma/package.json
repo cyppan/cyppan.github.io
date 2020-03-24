@@ -1,0 +1,17 @@
+{
+  "name": "custom-bulma",
+  "version": "1.0.0",
+  "description": "https://bulma.io/documentation/customize/with-node-sass/",
+  "main": "sass/styles.scss",
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "bulma": "^0.8.0",
+    "node-sass": "^4.13.1"
+  },
+  "scripts": {
+    "css-build": "node-sass --omit-source-map-url sass/styles.scss css/styles.css",
+    "css-watch": "npm run css-build -- --watch",
+    "start": "npm run css-watch"
+  }
+}
