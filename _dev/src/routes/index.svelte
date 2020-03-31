@@ -23,6 +23,11 @@
 <script>
   export const articles = [
     {
+      link: "/blog/en/2020-04-01-covid-19-scaling-stories-how-startups-failed",
+      name: "COVID-19 scaling stories: how startups failed",
+      category: "tech"
+    },
+    {
       link: "https://medium.com/@cyppan/vers-un-nouveau-mode-dorganisation-du-travail-81ad33d26cb",
       name: "Vers un nouveau mode d'organisation du travail",
       source: "medium",
@@ -134,7 +139,7 @@
 
 <section class="section">
   <div class="container">
-    <h1 class="title"><a id="articles"></a># Articles</h1>
+    <h1 class="title"><a id="articles" href="#articles"># Articles</a></h1>
     <div class="content">
       <div>
         <span>Filter by:</span>
@@ -156,7 +161,7 @@
 
       {#each filteredArticles as article}
       <h3>
-        <a href="{article.link}">
+        <a href="{article.link}" style="color: #4a4a4a">
           {#if article.source === "medium"}
             <span class="icon"><i class="fab fa-medium"></i></span>
           {/if}
@@ -170,7 +175,7 @@
 
 <section class="section">
   <div class="container">
-    <h1 class="title"><a id="code"></a># Code</h1>
+    <h1 class="title"><a id="code" href="#code"># Code</a></h1>
   </div>
   <div class="tile is-ancestor" style="margin-top:10px">
     <div class="tile is-parent is-vertical">

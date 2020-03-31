@@ -9,13 +9,30 @@ $pink: #FA7C91;
 $brown: #757763;
 $beige-light: #D0D1CD;
 $beige-lighter: #EFF0EB;
+$green: hsl(141, 53%, 53%);
+$blue: hsl(217, 71%, 53%);
+$cyan: hsl(204, 71%, 53%);
+$turquoise: hsl(171, 100%, 41%);
+$yellow: hsl(48, 100%, 67%);
+$red: hsl(348, 86%, 61%);
+$grey-darker: hsl(0, 0%, 21%);
+$grey-dark: hsl(0, 0%, 29%);
+$white-ter: hsl(0, 0%, 96%);
 
 // Update Bulma's global variables
 $family-sans-serif: "Roboto", sans-serif;
+
+$primary: $green;
+$link: $turquoise;
+$info: $blue;
+$success: $cyan;
+$warning: $yellow;
+$danger: $red;
+$dark: $grey-darker;
+$text: $grey-dark;
+$background: $white-ter;
 $grey-dark: $brown;
 $grey-light: $beige-light;
-$primary: $purple;
-$link: $pink;
 $widescreen-enabled: false;
 $fullhd-enabled: false;
 
@@ -26,6 +43,7 @@ $input-border-color: transparent;
 $input-shadow: none;
 
 // Import only what you need from Bulma
+
 @import "../node_modules/bulma/sass/utilities/_all.sass";
 @import "../node_modules/bulma/sass/base/_all.sass";
 @import "../node_modules/bulma/sass/components/_all.sass";
