@@ -1,7 +1,7 @@
 <script>
-  export const title = "COVID-19 scaling stories: how startups failed"
+  export const title = "scaling stories: how startups failed"
   export const description = "During COVID-19, online services, especially meeting utilities or edtech programs, had to face a particularly sustained usage, enduring a unplanned and lasting peak load recently. Couldn't those businesses have anticipated more? Couldn't they have a stronger tech at the origin, exceptional event or not?"
-  export const path = "/blog/en/2020-04-01-covid-19-scaling-stories-how-startups-failed"
+  export const path = "/blog/en/2020-04-01-scaling-stories-how-startups-failed"
   export const url = "https://cyppan.me" + path;
 </script>
 
@@ -97,7 +97,7 @@
         <img alt="black swan Image by Holger Detje from Pixabay" src="/black-swan.jpg" />
       </div>
       <div class="column">
-        Covid19 is a very good example of a <a href="https://en.wikipedia.org/wiki/Black_swan_theory" target="_blank">black swan</a> event.
+        Covid-19 is a very good example of a <a href="https://en.wikipedia.org/wiki/Black_swan_theory" target="_blank">black swan</a> event.
         An event that is very rare, has massive implications, and so for which companies haven't planned for.<br />
         Indeed, this point is pretty obvious. We'll call it the "bird pause" 😉 
       </div>

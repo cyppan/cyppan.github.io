@@ -23,8 +23,8 @@
 <script>
   export const articles = [
     {
-      link: "/blog/en/2020-04-01-covid-19-scaling-stories-how-startups-failed",
-      name: "COVID-19 scaling stories: how startups failed",
+      link: "/blog/en/2020-04-01-scaling-stories-how-startups-failed",
+      name: "Scaling stories: how startups failed",
       category: "tech"
     },
     {
