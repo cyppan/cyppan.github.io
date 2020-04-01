@@ -166,7 +166,7 @@
       <li>Replicated cache: AWS Elasticache</li>
       <li>Distributed File storage: AWS S3</li>
       <li>Data streaming: Google pubsub</li>
-      <li>Columnar-storage (optimized for aggregation) Data lake: Google Bigquery</li>
+      <li>Data warehouse: Google Bigquery</li>
     </ul>
 
     <p>
