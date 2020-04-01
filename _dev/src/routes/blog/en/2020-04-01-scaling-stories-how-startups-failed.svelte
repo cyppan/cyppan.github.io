@@ -76,7 +76,7 @@
       To synthetize, they know a lot about how their product is used and where they are going, and so know a lot about where to focus, and what kind of effort they need to do to adapt to the extra demand. Plus their current architecture can already sustain some load.
     </p>
     <p>
-      On the other side, young online services were just overflowed, calling for help, trying desperatly to find solutions to shard and replicate their existing relational databases (more on that later).<br />
+      On the other side, young online services were just overflowed, calling for help, trying desperately to find solutions to shard and replicate their existing relational databases (more on that later).<br />
       I'll take an hypothetical example of an <strong>edtech startup</strong> offering innovative online class services
     </p>
     <p>
@@ -130,8 +130,8 @@
       We can deconstruct first what is to be "scaled"
     </p>
     <ul>
-      <li><strong>servers capacity</strong>: costs will force you to dimension correctly their size (cpu / ram / storage). They could be physical, virtual, or containers.</li>
-      <li><strong>data access patterns</strong>: better know your usage, avoid shared state and global querying and prefer immutability.</li>
+      <li><strong>servers capacity</strong>: costs will force you to dimension correctly their size (cpu / ram / storage). They can be physical, virtual, or containers.</li>
+      <li><strong>data access patterns</strong>: know your usage, avoid shared state and global querying, prefer immutability.</li>
       <li><strong>human intervention & maintenance</strong>: "the more you automate, the faster you iterate" (Github, CI/CD, terraform, ...).</li>
       <li><strong>code refactoring</strong>: to scale ofter means pre-compute things, use smart caching, more synchronization, all of this has to be coded and maintained at some point.</li>
     </ul>
@@ -152,9 +152,9 @@
     <h2 class="subtitle is-4">The infinite scaling strategy</h2>
 
     <p>
-      Well I prefer to immediately debunk the myth, it's theoretically possible to <strong>approach</strong> such an architecture but it will be very expensive, and possibly quite rigid.<br />
+      Well I prefer to immediately debunk the myth, it's theoretically possible to <strong>approach</strong> such an architecture but it will be very expensive (in time and money _ again things you don't really have as a startup), and possibly quite rigid.<br />
       The key here would be to use a lot of high level managed services who run on giant cloud infrastructures. 
-      The services choosen should be 100% dynamic, I mean scale transparently : you shouldn't have to manage any physical nodes directly.
+      The services choosen should be 100% dynamic, I mean scale transparently: you shouldn't have to manage any physical nodes directly.
       They better have included and transparent replication (to scale reads) and sharding capabilities (to scale writes) and be able to be geographically dispatched in several regions on the planet.<br />
     </p>
     <p>
@@ -193,7 +193,7 @@
     </p>
     <ul>
       <li>To develop a strong <strong>monitoring and alerting pipeline</strong>. You have plenty of tools to do that easily nowadays.</li>
-      <li>To <strong>test every migration</strong> before. The more the system is distributed, the harder the problems will be predictable. It's easier to just test it.</li>
+      <li>To <strong>test every migration</strong> before. The more the system is distributed, the harder the problems are predictable. It's easier to just test it.</li>
     </ul>
     <p>
       As examples, the scaling next step could be: 
@@ -205,13 +205,27 @@
     </ul>
 
     <p>
-    <em>
-      Note: smart scaling is specific scaling, so every case has a different story..!
-    </em>
+      The core principle is to be cost efficient and smart: to scale efficiently you have to scale in the right proportion and at the right time, too soon and it will cost you too much, too late and you'll loose some quality of service... 
+      And this is why having a good feedback (automated) on your current architecture is a real plus.<br />
+      Clouds often offer pre-activated monitoring metrics, 
+      for example if you use AWS Beanstalk environments for your web services it provides you automatically the following ones:</p>
+    <p>
+    <ul>
+      <li>requests count</li>
+      <li>average latency</li>
+      <li>load</li>
+      <li>CPU</li>
+      <li>network in/out</li>
+      <li>...</li>
+    </ul>
+    <p>It is super fast then to visualize in dashboards, to enable alerting, or even activate auto-scaling based on CPU percentage, or network usage...
+    And you have the tools now to scale your web services correctly. After all, more knowledge at the beginning means better decisions at the end.</p>
+    <p>
+      Of course, smart scaling is specific scaling, so every case has a different story..! (databases, queues, pubsubs, data analytics, ...).
     </p>
     <p>
-      To conclude, the right solution probably lies in between the two strategies. It depends on your budget, the technical complexity of your product, and the skills you have at your disposal.<br />
-      At least I hope you have now new ideas about how to better anticipate scale !
+      To conclude, the right solution probably lies in between the two strategies. It depends on your budget, the technical complexity of your product, and the skills you have at your disposal...<br />
+      At least I hope you have new ideas now about how to better anticipate scale !
     </p>
     <br />
     <p>
