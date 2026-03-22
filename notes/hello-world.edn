@@ -1,0 +1,27 @@
+(defnote hello-world
+  {:tags [:test]
+   :created "2026-03-20
+             testing the test
+             
+             ## Absolument my lord
+
+             It's about right.
+             
+            "
+   :temptation 'irresistible}
+
+  :plop
+
+  "# Hello World
+   
+   > coucou
+> 
+
+   | hello
+
+| hello
+   
+
+> hello'
+
+   A minimal test note.")

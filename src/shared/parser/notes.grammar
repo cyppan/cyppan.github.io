@@ -1,0 +1,56 @@
+@top Program { expression* }
+
+@skip { whitespace | LineComment }
+
+expression {
+  Symbol |
+  QuotedSymbol |
+  Keyword |
+  String |
+  Number |
+  Boolean |
+  Nil |
+  List |
+  Vector |
+  Map |
+  Discard
+}
+
+Discard { "#_" expression }
+
+List { "(" expression* ")" }
+Vector { "[" expression* "]" }
+Map { "{" expression* "}" }
+
+Boolean { @specialize<Symbol, "true" | "false"> }
+Nil { @specialize<Symbol, "nil"> }
+
+@skip {} {
+  String[isolate] { '"' StringContent? '"' }
+}
+
+@tokens {
+  "(" ")" "[" "]" "{" "}"
+
+  whitespace { ($[ \t\n\r] | ",")+ }
+  LineComment { ";" ![\n]* }
+
+  "#_"
+
+  identStart { @asciiLetter | $[<>&%._=?!*+\-$/] }
+  identChar { identStart | @digit | ":" | "'" | "#" }
+  Symbol { identStart identChar* }
+  QuotedSymbol { "'" identStart identChar* }
+
+  Keyword { ":" ":"? identStart identChar* }
+
+  Number { ("+" | "-")? (@digit+ ("." @digit*)? | "." @digit+) }
+
+  StringContent { (![\\"] | "\\" _)+ }
+
+  @precedence { Number, Keyword, QuotedSymbol, Symbol }
+}
+
+@external propSource notesHighlighting from "./highlight"
+
+@detectDelim

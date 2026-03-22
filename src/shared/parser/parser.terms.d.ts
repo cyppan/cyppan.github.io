@@ -1,0 +1,13 @@
+export declare const LineComment: number;
+export declare const Program: number;
+export declare const Symbol: number;
+export declare const Keyword: number;
+export declare const String: number;
+export declare const StringContent: number;
+export declare const Number: number;
+export declare const Boolean: number;
+export declare const Nil: number;
+export declare const List: number;
+export declare const Vector: number;
+export declare const Map: number;
+export declare const Discard: number;

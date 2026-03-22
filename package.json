@@ -1,0 +1,36 @@
+{
+  "name": "notes",
+  "module": "src/server/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build:grammar": "lezer-generator src/shared/parser/notes.grammar -o src/shared/parser/parser",
+    "dev": "bun run build:grammar && bun run dev:server & bun run dev:client",
+    "dev:server": "bun run --hot src/server/index.ts",
+    "dev:client": "vite",
+    "build": "bun run build:grammar && vite build",
+    "start": "NODE_ENV=production bun run src/server/index.ts",
+    "check": "bun run build:grammar && biome check . && tsc --noEmit",
+    "test": "bun run build:grammar && bun test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.8",
+    "@lezer/generator": "^1.8.0",
+    "@types/bun": "latest",
+    "typescript": "^5",
+    "vite": "^8.0.1"
+  },
+  "dependencies": {
+    "@codemirror/commands": "^6.10.3",
+    "@codemirror/lang-markdown": "^6.5.0",
+    "@codemirror/language": "^6.12.2",
+    "@codemirror/state": "^6.6.0",
+    "@codemirror/view": "^6.40.0",
+    "@lezer/common": "^1.5.1",
+    "@lezer/highlight": "^1.2.3",
+    "@lezer/lr": "^1.4.8",
+    "@lezer/markdown": "^1.6.3",
+    "codemirror": "^6.0.2",
+    "hono": "^4.12.8"
+  }
+}

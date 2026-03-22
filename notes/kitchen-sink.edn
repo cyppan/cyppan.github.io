@@ -1,0 +1,25 @@
+;; This is a comment
+(defnote kitchen-sink
+  {:tags [:test :edge-cases]
+   :public false
+   :created "2026-03-20"}
+
+  "# Kitchen Sink
+
+   Testing all the edge cases."
+
+  ;; Inline comment between blocks
+  #_ (this-form-is-discarded "should not appear")
+
+  (code :typescript
+    "const x = \"hello \\\"world\\\"\";
+     console.log(x);")
+
+  "## Second Section
+
+   More content with *markdown* and `inline code`."
+
+  (ref hello-world "See also: Hello World")
+
+  (inspirations
+    ["https://example.com"]))

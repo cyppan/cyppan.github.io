@@ -1,0 +1,24 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.8/schema.json",
+  "files": {
+    "includes": [
+      "**",
+      "!src/shared/parser/parser.js",
+      "!src/shared/parser/parser.terms.js",
+      "!src/shared/parser/parser.terms.d.ts",
+      "!.claude"
+    ]
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "style": {
+        "noNonNullAssertion": "error"
+      }
+    }
+  }
+}
