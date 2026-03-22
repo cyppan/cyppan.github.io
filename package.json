@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "build:grammar": "lezer-generator src/shared/parser/notes.grammar -o src/shared/parser/parser",
-    "dev": "bun run build:grammar && bun run dev:server & bun run dev:client",
+    "dev": "bun run build:grammar && (trap 'kill 0' EXIT; bun run dev:server & bun run dev:client)",
     "dev:server": "bun run --hot src/server/index.ts",
     "dev:client": "vite",
     "build": "bun run build:grammar && vite build",

@@ -13,6 +13,7 @@ startWatcher(notesDir);
 const app = new Hono();
 
 app.route("/api", api);
+app.use("/media/*", serveStatic({ root: "./" }));
 
 const isProd = process.env.NODE_ENV === "production";
 

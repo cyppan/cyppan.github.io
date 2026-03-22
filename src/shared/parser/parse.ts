@@ -1,5 +1,6 @@
 import type { SyntaxNode, Tree } from "@lezer/common";
 import { parser } from "./parser.js";
+import { nodeText, unescapeString } from "./util.js";
 
 export interface NoteMetadata {
   slug: string;
@@ -23,31 +24,6 @@ export interface ParseError {
 export type ParseResult =
   | { ok: true; note: ParsedNote }
   | { ok: false; errors: ParseError[] };
-
-function nodeText(source: string, node: SyntaxNode): string {
-  return source.slice(node.from, node.to);
-}
-
-/** Strip surrounding quotes and unescape basic escape sequences */
-function unescapeString(raw: string): string {
-  const inner = raw.slice(1, -1);
-  return inner.replace(/\\(.)/g, (_, ch) => {
-    switch (ch) {
-      case "n":
-        return "\n";
-      case "t":
-        return "\t";
-      case "r":
-        return "\r";
-      case "\\":
-        return "\\";
-      case '"':
-        return '"';
-      default:
-        return ch ?? "";
-    }
-  });
-}
 
 /** Extract title from first markdown heading */
 function extractTitle(content: string): string | null {

@@ -1,0 +1,13 @@
+[     123ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/favicon.ico:0
+[     275ms] RangeError: Decorations that replace line breaks may not be specified via plugins
+    at Object.point (http://localhost:5173/node_modules/.vite/deps/dist-vymgJ0hJ.js?v=d38aa5e8:2452:59)
+    at RangeSet.spans (http://localhost:5173/node_modules/.vite/deps/dist-DzjPg940.js?v=d38aa5e8:2964:14)
+    at TileUpdate.emit (http://localhost:5173/node_modules/.vite/deps/dist-vymgJ0hJ.js?v=d38aa5e8:2447:26)
+    at TileUpdate.run (http://localhost:5173/node_modules/.vite/deps/dist-vymgJ0hJ.js?v=d38aa5e8:2376:10)
+    at http://localhost:5173/node_modules/.vite/deps/dist-vymgJ0hJ.js?v=d38aa5e8:2653:25
+    at DOMObserver.ignore (http://localhost:5173/node_modules/.vite/deps/dist-vymgJ0hJ.js?v=d38aa5e8:6137:11)
+    at DocView.updateInner (http://localhost:5173/node_modules/.vite/deps/dist-vymgJ0hJ.js?v=d38aa5e8:2648:12)
+    at new DocView (http://localhost:5173/node_modules/.vite/deps/dist-vymgJ0hJ.js?v=d38aa5e8:2604:8)
+    at new EditorView (http://localhost:5173/node_modules/.vite/deps/dist-vymgJ0hJ.js?v=d38aa5e8:6652:18)
+    at createEditor (http://localhost:5173/src/client/editor/setup.ts:46:9)
+[     290ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/media/architecture-diagram.png:0

@@ -43,6 +43,10 @@ Use `bun run check` to check for type errors and syntax errors, it's fast you ca
 
 This project uses Vite for the client build (not Bun.serve HTML imports). Server is Hono on Bun.
 
+### Dev server
+
+`bun run dev` starts both Hono (port 3000) and Vite (port 5173). The script uses `trap 'kill 0' EXIT` to clean up child processes. Vite is configured with `usePolling: true` so file changes from external tools are reliably detected (macOS FSEvents can miss atomic writes). To restart cleanly, kill by port: `lsof -ti :5173 -ti :3000 | xargs kill -9`.
+
 ## Architecture: Nested Parsing & the "Inner Language" Problem
 
 The editor uses a custom Lezer grammar for EDN syntax, with `parseMixed` nesting a markdown parser inside `StringContent` nodes. This creates a two-language tree: EDN wraps markdown.
@@ -91,6 +95,14 @@ String continuation lines are indented to `column of " + 1`. Without compensatio
 ### Blockquote decoration (`src/client/editor/blockquote.ts`)
 
 `HighlightStyle` handles text styling (color, italic) for blockquotes via `t.quote`. But block-level styling (left border, padding) requires line decorations. A `ViewPlugin` walks visible lines with `resolveInner` (not `iterate` — see overlay rule above) to find `Blockquote` ancestors and applies `Decoration.line` with a `baseTheme`.
+
+### DSL form widgets (`src/client/editor/decorations.ts`)
+
+Recognized DSL forms (`(media ...)`, `(ref ...)`, `(code ...)`) are replaced with rendered widgets via `Decoration.replace`. The tree is scanned with `tree.iterate()` (outer EDN nodes only — doesn't enter overlay markdown), matching `List` nodes whose first `Symbol` child is a known form name. Unrecognized or malformed forms are left as raw EDN.
+
+**Critical CM6 gotcha**: `Decoration.replace` that spans multiple lines (e.g., a `(code ...)` form) is forbidden in `ViewPlugin`-sourced decorations — CM6 throws "Decorations that replace line breaks may not be specified via plugins". This applies to both the `decorations` accessor AND the `provide` option on `ViewPlugin`. The fix: use a `StateField` with `provide: (field) => EditorView.decorations.from(field)`. StateField-sourced decorations have no such restriction. The widget field iterates the full document (no `visibleRanges` optimization), which is fine for note-sized files.
+
+Widget classes (`src/client/editor/widgets/`): `MediaWidget` (image + error fallback), `RefWidget` (link to `/n/{slug}`), `CodeWidget` (styled `<pre>` with language label). Each extends `WidgetType` with `toDOM()` and `eq()`. Code content is dedented via `dedentString()` from `src/shared/parser/util.ts` to strip DSL indentation.
 
 ### String node structure
 

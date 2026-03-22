@@ -13,6 +13,7 @@ import {
   lineNumbers,
 } from "@codemirror/view";
 import { blockquoteDecoration } from "./blockquote.js";
+import { dslWidgets } from "./decorations.js";
 import { ednFoldGutter, foldKeymap } from "./fold.js";
 import { notesLang } from "./language.js";
 import { proseDecoration } from "./prose.js";
@@ -32,6 +33,7 @@ export function createEditor(options: {
     notesTheme,
     blockquoteDecoration(),
     proseDecoration(),
+    dslWidgets(),
     lineNumbers(),
     ednFoldGutter(),
     bracketMatching(),

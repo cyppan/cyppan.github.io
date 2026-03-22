@@ -8,7 +8,7 @@
    Some **rich** markdown text. This is where prose lives.
    Inline `code`, [links](https://...), all standard markdown."
 
-  (media {:src "/media/architecture-diagram.png" :alt "System diagram"})
+  (media {:src "/media/graph.png" :alt "Evolution graph"})
 
   "## Technical choices
 
