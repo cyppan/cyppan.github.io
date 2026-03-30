@@ -1,3 +1,19 @@
+@font-face {
+  font-family: "Junicode";
+  src: url("/fonts/JunicodeVF-Roman.woff2") format("woff2");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Junicode";
+  src: url("/fonts/JunicodeVF-Italic.woff2") format("woff2");
+  font-weight: 300 700;
+  font-style: italic;
+  font-display: swap;
+}
+
 *,
 *::before,
 *::after {
@@ -32,4 +48,111 @@ body {
 
 .cm-editor {
   max-width: 100%;
+}
+
+/* Navigation */
+.nav-back {
+  display: inline-block;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  color: #abb0b6;
+  text-decoration: none;
+  margin-bottom: 0.5rem;
+}
+
+.nav-back:hover {
+  color: #4078f2;
+}
+
+/* Site header */
+.site-header h1 {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 1.2rem;
+  font-weight: normal;
+  color: #5c6166;
+  margin-bottom: 1.5rem;
+}
+
+/* Tag filter */
+.tag-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tag-pill {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid #d0d7de;
+  border-radius: 12px;
+  background: transparent;
+  color: #5c6166;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.tag-pill.active,
+.tag-filter .tag-pill:hover {
+  background: #399ee6;
+  color: white;
+  border-color: #399ee6;
+}
+
+/* Note list */
+.note-list {
+  list-style: none;
+}
+
+.note-item {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.note-item a {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.note-title {
+  font-family: Junicode, serif;
+  font-size: 1.1rem;
+  color: #1a1a1a;
+}
+
+.note-item a:hover .note-title {
+  color: #4078f2;
+}
+
+.note-date {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  color: #abb0b6;
+  white-space: nowrap;
+}
+
+.note-preview {
+  font-family: Junicode, serif;
+  font-size: 0.9rem;
+  color: #5c6166;
+  margin-top: 0.3rem;
+  line-height: 1.4;
+}
+
+.note-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+}
+
+.note-tags .tag-pill {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  cursor: default;
 }

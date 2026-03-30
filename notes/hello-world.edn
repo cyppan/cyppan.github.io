@@ -1,21 +1,24 @@
-(defnote hello-world
-  {:tags [:test]
-   :created "2026-03-20
-             testing the test
-             
-             ## Absolument my lord
-
-             It's about right.
-             
-            "
-   :temptation 'irresistible}
+(defnote "Hello World"
+  {:slug 'hello-world
+   :tags [:test]
+   :public true
+   :created "2026-03-20"}
+  
+  (preview
+   "Just a note to say hello world. This is a preview of the note content."
+   (media {:src "/media/graph.png" :alt "media supported in preview"}))
 
   :plop
+
+  (section 'absolute
+    "sempiternelle mais délicate")
 
   "# Hello World
    
    > coucou
-> 
+   > bonjour
+   
+   avec plaisir, chers amis
 
    | hello
 

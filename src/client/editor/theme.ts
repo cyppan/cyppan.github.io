@@ -3,11 +3,11 @@ import { EditorView } from "@codemirror/view";
 import { tags as t } from "@lezer/highlight";
 
 const mono = "ui-monospace, 'SF Mono', Menlo, Consolas, monospace";
-const serif = "'New York', 'Iowan Old Style', Georgia, serif";
+const serif = "Junicode, serif";
 
 const highlightStyle = HighlightStyle.define([
   // EDN DSL tokens — inherit monospace from base, only need color/style
-  { tag: t.variableName, color: "#5c6166" },
+  { tag: t.variableName, color: "#5f9e94" },
   { tag: t.labelName, color: "#399ee6" },
   { tag: t.atom, color: "#a37acc" },
   { tag: t.string, color: "#86b300" },
@@ -37,7 +37,7 @@ const highlightStyle = HighlightStyle.define([
     fontFamily: serif,
   },
   { tag: t.monospace, color: "#e45649", fontFamily: mono },
-  { tag: t.quote, color: "#6a737d", fontStyle: "italic", fontFamily: serif },
+  { tag: t.quote, color: "#6a737d", fontStyle: "italic" },
 ]);
 
 export const notesHighlightExt = syntaxHighlighting(highlightStyle);
@@ -49,7 +49,7 @@ export { highlightStyle as testHighlightStyle };
 // via the prose mark decoration (see prose.ts).
 export const notesTheme = EditorView.theme({
   "&": {
-    fontSize: "15px",
+    fontSize: "13px",
     fontFamily: mono,
   },
   ".cm-content": {

@@ -6,7 +6,8 @@
       "!src/shared/parser/parser.js",
       "!src/shared/parser/parser.terms.js",
       "!src/shared/parser/parser.terms.d.ts",
-      "!.claude"
+      "!.claude",
+      "!dist"
     ]
   },
   "formatter": {

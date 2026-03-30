@@ -334,6 +334,37 @@ describe("markdown parsing inside strings", () => {
     }
     expect(parentChain).toContain("Blockquote");
   });
+
+  test("resolveInner finds Blockquote when > is preceded by indentation", () => {
+    const doc = `(defnote test
+  "# Hello
+
+   > an indented quote
+
+   Normal.")`;
+    const state = makeState(doc);
+    const tree = ensureSyntaxTree(state, state.doc.length, 5000);
+    expect(tree).toBeDefined();
+    if (!tree) return;
+
+    // Find the line containing "> an indented quote"
+    const gtPos = doc.indexOf(">");
+    const line = state.doc.lineAt(gtPos);
+
+    // Reproduce the fix logic: skip leading whitespace, resolve at nonWS + 1
+    const nonWS = line.text.search(/\S/);
+    const resolveAt =
+      nonWS >= 0 ? Math.min(line.from + nonWS + 1, line.to) : line.from;
+    const node = tree.resolveInner(resolveAt);
+
+    let cur: typeof node | null = node;
+    const parentChain: string[] = [];
+    while (cur) {
+      parentChain.push(cur.name);
+      cur = cur.parent;
+    }
+    expect(parentChain).toContain("Blockquote");
+  });
 });
 
 // ---------- Dedent overlays ----------

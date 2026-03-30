@@ -22,10 +22,14 @@ function buildDecorations(view: EditorView): DecorationSet {
     let pos = from;
     while (pos <= to) {
       const line = view.state.doc.lineAt(pos);
-      // resolveInner enters overlay trees, so it finds markdown nodes
-      let node: { name: string; parent: unknown } | null = tree.resolveInner(
-        Math.min(line.from + 1, line.to),
-      );
+      // Skip leading whitespace so resolveInner lands inside the
+      // Blockquote node (after >) rather than in the indent gap which
+      // is either before the Blockquote range or outside overlay ranges.
+      const nonWS = line.text.search(/\S/);
+      const resolveAt =
+        nonWS >= 0 ? Math.min(line.from + nonWS + 1, line.to) : line.from;
+      let node: { name: string; parent: unknown } | null =
+        tree.resolveInner(resolveAt);
       while (node) {
         if (node.name === "Blockquote") {
           decorations.push(blockquoteLine.range(line.from));
@@ -64,7 +68,6 @@ export function blockquoteDecoration(): Extension {
     EditorView.baseTheme({
       ".cm-blockquote": {
         borderLeft: "3px solid #d0d7de",
-        paddingLeft: "12px",
       },
     }),
   ];

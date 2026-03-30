@@ -4,6 +4,7 @@ export class MediaWidget extends WidgetType {
   constructor(
     readonly src: string,
     readonly alt: string,
+    readonly indent: number,
   ) {
     super();
   }
@@ -15,6 +16,7 @@ export class MediaWidget extends WidgetType {
   toDOM(): HTMLElement {
     const wrapper = document.createElement("div");
     wrapper.className = "cm-media-widget";
+    wrapper.style.paddingLeft = `${this.indent}ch`;
 
     const img = document.createElement("img");
     img.src = this.src;

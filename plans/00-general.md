@@ -238,8 +238,8 @@ Use `history.pushState` for navigation between notes.
 2. **Lezer Grammar & Parser** — Custom grammar, metadata extraction ✅
 3. **Server API** — CRUD routes, in-memory index, sample notes ✅
 4. **CodeMirror Editor** — Language support, edit/read views, nested markdown ✅
-5. **Decoration Widgets** — media, ref, code widgets replacing DSL forms
-6. **Router & List View** — SPA navigation, note listing, tag filter
+5. **Decoration Widgets** — media, ref, code widgets replacing DSL forms ✅
+6. **Router & List View** — SPA navigation, note listing, tag filter ✅
 7. **Polish & Production** — Styling, meta tags, build pipeline, dev guards
 
 Each phase gets its own detailed plan (`plans/01-skeleton.md`, etc.) before implementation. Decisions can be rechallenged at each step.

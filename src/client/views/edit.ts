@@ -15,6 +15,12 @@ export async function mountEditView(
 
   const { source } = (await res.json()) as { source: string };
 
+  const nav = document.createElement("a");
+  nav.className = "nav-back";
+  nav.href = "/";
+  nav.textContent = "← notes";
+  target.appendChild(nav);
+
   const status = document.createElement("div");
   status.className = "save-status";
   status.textContent = "";

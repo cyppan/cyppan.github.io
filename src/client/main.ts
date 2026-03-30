@@ -17,7 +17,8 @@ async function route(): Promise<void> {
     const { mountReadView } = await import("./views/read.js");
     await mountReadView(app, readMatch[1]);
   } else {
-    app.innerHTML = "<h1>@cyppan Notes</h1><p>Note list coming in Phase 6.</p>";
+    const { mountListView } = await import("./views/list.js");
+    await mountListView(app);
   }
 }
 

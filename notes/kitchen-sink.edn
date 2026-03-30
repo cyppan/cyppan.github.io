@@ -1,12 +1,18 @@
 ;; This is a comment
-(defnote kitchen-sink
-  {:tags [:test :edge-cases]
-   :public false
+(defnote "Kitchen Sink"
+  {:slug 'kitchen-sink
+   :tags [:test :edge-cases]
+   :public true
    :created "2026-03-20"}
 
   "# Kitchen Sink
 
-   Testing all the edge cases."
+   Testing all the edge cases.
+   
+   > this is a blockquote with proper indentation
+
+   > and another blockquote, also properly indented
+  "
 
   ;; Inline comment between blocks
   #_ (this-form-is-discarded "should not appear")

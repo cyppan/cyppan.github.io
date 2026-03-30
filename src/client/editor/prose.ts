@@ -69,6 +69,18 @@ function buildDecorations(view: EditorView): DecorationSet {
       to,
       enter(node) {
         if (node.name === "StringContent") {
+          // Skip prose marks for code form strings (keep monospace)
+          const strNode = node.node.parent;
+          const listNode = strNode?.parent;
+          if (listNode?.name === "List") {
+            const sym = listNode.getChild("Symbol");
+            if (
+              sym &&
+              view.state.doc.sliceString(sym.from, sym.to) === "code"
+            ) {
+              return;
+            }
+          }
           addProseRanges(view.state.doc, node.from, node.to, decorations);
         }
       },
@@ -100,7 +112,8 @@ export function proseDecoration(): Extension {
     prosePlugin,
     EditorView.baseTheme({
       ".cm-prose": {
-        fontFamily: "'New York', 'Iowan Old Style', Georgia, serif",
+        fontFamily: "Junicode, serif",
+        fontSize: "19px",
       },
     }),
   ];

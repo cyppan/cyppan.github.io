@@ -131,6 +131,17 @@ const mixedParser = ednParser.configure({
   ],
   wrap: parseMixed((node, input) => {
     if (node.name === "StringContent") {
+      // Skip markdown nesting for code form strings:
+      // StringContent → String → List(code ...)
+      const strNode = node.node.parent;
+      const listNode = strNode?.parent;
+      if (listNode?.name === "List") {
+        const sym = listNode.getChild("Symbol");
+        if (sym && input.read(sym.from, sym.to) === "code") {
+          return null;
+        }
+      }
+
       const overlays = computeDedentOverlays(input, node.from, node.to);
       // Always use overlay mounting so StringContent stays in the outer tree.
       // Full mounts (no overlay) replace the node in tree.iterate(), hiding

@@ -7,7 +7,10 @@ export interface NoteMetadata {
   tags: string[];
   public: boolean;
   created: string;
-  title: string | null;
+  title: string;
+  preview: string | null;
+  previewImage: string | null;
+  previewSource: string | null;
 }
 
 export interface ParsedNote {
@@ -25,18 +28,17 @@ export type ParseResult =
   | { ok: true; note: ParsedNote }
   | { ok: false; errors: ParseError[] };
 
-/** Extract title from first markdown heading */
-function extractTitle(content: string): string | null {
-  const match = content.match(/^[\s]*#\s+(.+?)(?:\n|$)/m);
-  return match?.[1]?.trim() ?? null;
-}
-
 /** Walk children of a Map node and extract key-value pairs */
 function parseMetadataMap(
   source: string,
   mapNode: SyntaxNode,
-): { tags: string[]; public: boolean; created: string } {
-  const result = { tags: [] as string[], public: false, created: "" };
+): { slug: string | null; tags: string[]; public: boolean; created: string } {
+  const result = {
+    slug: null as string | null,
+    tags: [] as string[],
+    public: false,
+    created: "",
+  };
 
   // Get all Keyword children — each keyword is a key, its next named sibling is the value
   const keywords = mapNode.getChildren("Keyword");
@@ -58,6 +60,12 @@ function parseMetadataMap(
       case ":public": {
         if (value.name === "Boolean") {
           result.public = nodeText(source, value) === "true";
+        }
+        break;
+      }
+      case ":slug": {
+        if (value.name === "QuotedSymbol") {
+          result.slug = nodeText(source, value).slice(1);
         }
         break;
       }
@@ -101,11 +109,8 @@ function extractFromTree(tree: Tree, source: string): ParseResult {
     };
   }
 
-  // Get all Symbol children of the defnote list
-  const symbols = defnoteNode.getChildren("Symbol");
-
   // First Symbol should be "defnote"
-  const defnoteSymbol = symbols[0];
+  const defnoteSymbol = defnoteNode.getChild("Symbol");
   if (!defnoteSymbol || nodeText(source, defnoteSymbol) !== "defnote") {
     return {
       ok: false,
@@ -119,35 +124,83 @@ function extractFromTree(tree: Tree, source: string): ParseResult {
     };
   }
 
-  // Second Symbol is the slug
-  const slugSymbol = symbols[1];
-  if (!slugSymbol) {
+  // First String child is the title
+  const titleNode = defnoteNode.getChild("String");
+  if (!titleNode) {
     return {
       ok: false,
       errors: [
         {
-          message: "Expected slug symbol after defnote",
+          message: "Expected title string after defnote",
           from: defnoteNode.from,
           to: defnoteNode.to,
         },
       ],
     };
   }
-  const slug = nodeText(source, slugSymbol);
+  const title = unescapeString(nodeText(source, titleNode));
 
-  // Look for metadata Map
-  let meta = { tags: [] as string[], public: false, created: "" };
+  // Look for metadata Map (must contain :slug)
+  let meta = {
+    slug: null as string | null,
+    tags: [] as string[],
+    public: false,
+    created: "",
+  };
   const mapNode = defnoteNode.getChild("Map");
   if (mapNode) {
     meta = parseMetadataMap(source, mapNode);
   }
 
-  // Find first String block for title extraction
-  let title: string | null = null;
-  const strings = defnoteNode.getChildren("String");
-  const firstString = strings[0];
-  if (firstString) {
-    title = extractTitle(unescapeString(nodeText(source, firstString)));
+  if (!meta.slug) {
+    return {
+      ok: false,
+      errors: [
+        {
+          message: "Expected :slug in metadata map",
+          from: mapNode?.from ?? defnoteNode.from,
+          to: mapNode?.to ?? defnoteNode.to,
+        },
+      ],
+    };
+  }
+  const slug = meta.slug;
+
+  // Extract (preview ...) form
+  let preview: string | null = null;
+  let previewImage: string | null = null;
+  let previewSource: string | null = null;
+  for (const list of defnoteNode.getChildren("List")) {
+    const syms = list.getChildren("Symbol");
+    if (syms[0] && nodeText(source, syms[0]) === "preview") {
+      // Raw inner source (everything after "preview" symbol, before closing paren)
+      previewSource = source.slice(syms[0].to, list.to - 1).trim();
+
+      // Flat text from first String child (for OG description)
+      const previewStrings = list.getChildren("String");
+      if (previewStrings[0]) {
+        preview = unescapeString(nodeText(source, previewStrings[0])).trim();
+      }
+      // First media src (for OG image)
+      for (const inner of list.getChildren("List")) {
+        const innerSyms = inner.getChildren("Symbol");
+        if (innerSyms[0] && nodeText(source, innerSyms[0]) === "media") {
+          const mapChild = inner.getChild("Map");
+          if (mapChild) {
+            for (const kw of mapChild.getChildren("Keyword")) {
+              if (nodeText(source, kw) === ":src") {
+                const val = kw.nextSibling;
+                if (val?.name === "String") {
+                  previewImage = unescapeString(nodeText(source, val));
+                }
+              }
+            }
+          }
+          break;
+        }
+      }
+      break;
+    }
   }
 
   const metadata: NoteMetadata = {
@@ -156,6 +209,9 @@ function extractFromTree(tree: Tree, source: string): ParseResult {
     public: meta.public,
     created: meta.created,
     title,
+    preview,
+    previewImage,
+    previewSource,
   };
 
   return { ok: true, note: { metadata, source } };

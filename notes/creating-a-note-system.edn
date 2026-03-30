@@ -1,11 +1,13 @@
-(defnote creating-a-note-system
-  {:tags [:architecture :personal-tools]
+(defnote "# Creating a note system"
+  {:slug 'creating-a-note-system
+   :tags [:architecture :personal-tools]
    :public true
    :created "2026-03-20"}
 
-  "# Creating an innovative note system
+  (section "Test"
+    "coucou")
 
-   Some **rich** markdown text. This is where prose lives.
+  "Some **rich** markdown text. This is where prose lives.
    Inline `code`, [links](https://...), all standard markdown."
 
   (media {:src "/media/graph.png" :alt "Evolution graph"})

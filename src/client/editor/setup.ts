@@ -14,7 +14,12 @@ import {
 } from "@codemirror/view";
 import { blockquoteDecoration } from "./blockquote.js";
 import { dslWidgets } from "./decorations.js";
-import { ednFoldGutter, foldKeymap } from "./fold.js";
+import {
+  autoFoldCode,
+  autoFoldPreview,
+  ednFoldGutter,
+  foldKeymap,
+} from "./fold.js";
 import { notesLang } from "./language.js";
 import { proseDecoration } from "./prose.js";
 import { notesHighlightExt, notesTheme, readTheme } from "./theme.js";
@@ -24,8 +29,9 @@ export function createEditor(options: {
   source: string;
   readonly?: boolean;
   onSave?: (source: string) => void;
+  extraExtensions?: import("@codemirror/state").Extension[];
 }): EditorView {
-  const { target, source, readonly = false, onSave } = options;
+  const { target, source, readonly = false, onSave, extraExtensions } = options;
 
   const extensions = [
     notesLang(),
@@ -54,6 +60,7 @@ export function createEditor(options: {
       EditorState.readOnly.of(true),
       EditorView.editable.of(false),
       readTheme,
+      autoFoldCode(),
     );
   }
 
@@ -69,6 +76,12 @@ export function createEditor(options: {
         },
       ]),
     );
+  }
+
+  if (extraExtensions) {
+    extensions.push(...extraExtensions);
+  } else {
+    extensions.push(autoFoldPreview());
   }
 
   return new EditorView({

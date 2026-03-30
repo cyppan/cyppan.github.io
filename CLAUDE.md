@@ -31,6 +31,20 @@ test("hello world", () => {
 });
 ```
 
+## Workflow
+
+- Always validate approach with the user before implementing, especially for UI/design decisions. Explain the proposed approach, ask for confirmation, then code.
+
+## Design Philosophy
+
+- The EDN DSL is self-sufficient. The DSL text IS the interface — it must always remain visible and editable.
+- **Never use `Decoration.replace` on DSL forms.** Replacing the DSL hides it from the user and makes it uneditable. This is forbidden.
+- Widgets **augment** the DSL, they don't substitute it. Use `Decoration.widget` (positioned before/after the form) to render visual complements alongside the raw EDN.
+  - `(media ...)`: the form stays visible and editable. An image preview is rendered below/after it as a visual aid.
+  - `(ref ...)`: the form stays visible and editable. In **read-only mode**, the ref text is rendered as a clickable link. In **edit mode**, it is plain text (no link behavior).
+  - `(code ...)`: the DSL wrapping form always stays visible. In **edit mode**, the string content is a plain multiline editor (markdown nested parsing disabled for code strings). In **read-only mode**, a `CodeWidget` is inserted after the form showing the code syntax-highlighted in the target language (just `<pre><code>`, no labels or wrappers).
+- When adding new DSL form support: (1) the form always renders as raw EDN with syntax highlighting, (2) only add a companion widget when the rendered output adds something the text alone can't convey (e.g., an image), (3) never wrap in styled containers with labels or colored backgrounds.
+
 ## TypeScript Rules
 
 - Never use non-null assertions (`!.`). Use optional chaining (`?.`), early returns, or `if` guards instead.
@@ -94,15 +108,25 @@ String continuation lines are indented to `column of " + 1`. Without compensatio
 
 ### Blockquote decoration (`src/client/editor/blockquote.ts`)
 
-`HighlightStyle` handles text styling (color, italic) for blockquotes via `t.quote`. But block-level styling (left border, padding) requires line decorations. A `ViewPlugin` walks visible lines with `resolveInner` (not `iterate` — see overlay rule above) to find `Blockquote` ancestors and applies `Decoration.line` with a `baseTheme`.
+`HighlightStyle` handles text styling (color, italic) for blockquotes via `t.quote`. But block-level styling (left border) requires line decorations. A `ViewPlugin` walks visible lines with `resolveInner` (not `iterate` — see overlay rule above) to find `Blockquote` ancestors and applies `Decoration.line` with a `baseTheme`.
+
+**Critical resolve position rule**: `resolveInner` must be called at a position AFTER the leading whitespace on each line, not at `line.from + 1`. Leading whitespace on string continuation lines falls either (a) before the `Blockquote` node range in the markdown tree, or (b) in a gap between overlay ranges (the stripped indentation). Skip to `line.text.search(/\S/) + 1` before resolving. This applies to any `ViewPlugin` that uses `resolveInner` per-line to detect markdown block nodes.
+
+**Blockquote CSS must not shift content**: The `.cm-blockquote` style must NOT use `paddingLeft` or any property that shifts line content horizontally. The leading whitespace on string continuation lines is structural EDN indentation in monospace font — any content shift misaligns it with surrounding non-blockquote lines. Use only `borderLeft` for the visual indicator.
+
+### Prose font boundaries (`src/client/editor/prose.ts`)
+
+The `.cm-prose` serif mark is applied per-line to `StringContent`, **excluding** the leading `baseIndent` spaces on continuation lines (`baseIndent` = column of opening `"` + 1). These leading spaces are structural EDN indentation and must remain in the base monospace font. The prose mark starts at the first non-indent character on each continuation line. Any new decoration or style applied to string content lines must respect this boundary: structural indent spaces = monospace, prose content after them = serif.
 
 ### DSL form widgets (`src/client/editor/decorations.ts`)
 
-Recognized DSL forms (`(media ...)`, `(ref ...)`, `(code ...)`) are replaced with rendered widgets via `Decoration.replace`. The tree is scanned with `tree.iterate()` (outer EDN nodes only — doesn't enter overlay markdown), matching `List` nodes whose first `Symbol` child is a known form name. Unrecognized or malformed forms are left as raw EDN.
+DSL forms are **never replaced** — the EDN text always stays visible and editable. Widgets are companion decorations placed alongside the form via `Decoration.widget` (not `Decoration.replace`). The tree is scanned with `tree.iterate()` (outer EDN nodes only — doesn't enter overlay markdown), matching `List` nodes whose first `Symbol` child is a known form name.
 
-**Critical CM6 gotcha**: `Decoration.replace` that spans multiple lines (e.g., a `(code ...)` form) is forbidden in `ViewPlugin`-sourced decorations — CM6 throws "Decorations that replace line breaks may not be specified via plugins". This applies to both the `decorations` accessor AND the `provide` option on `ViewPlugin`. The fix: use a `StateField` with `provide: (field) => EditorView.decorations.from(field)`. StateField-sourced decorations have no such restriction. The widget field iterates the full document (no `visibleRanges` optimization), which is fine for note-sized files.
+- `(media ...)`: a `MediaWidget` (image preview) is inserted after the form as a block widget.
+- `(ref ...)`: in read-only mode, a `RefWidget` (clickable link) is inserted after the form. In edit mode, no widget — the DSL text is sufficient.
+- `(code ...)`: in edit mode, the string content is a plain multiline editor (no markdown nesting). In read-only mode, a `CodeWidget` (syntax-highlighted `<pre><code>`) is inserted after the form. The DSL wrapping form stays visible in both modes.
 
-Widget classes (`src/client/editor/widgets/`): `MediaWidget` (image + error fallback), `RefWidget` (link to `/n/{slug}`), `CodeWidget` (styled `<pre>` with language label). Each extends `WidgetType` with `toDOM()` and `eq()`. Code content is dedented via `dedentString()` from `src/shared/parser/util.ts` to strip DSL indentation.
+Widget classes (`src/client/editor/widgets/`): `MediaWidget` (image preview), `RefWidget` (clickable link for read-only mode), `CodeWidget` (syntax-highlighted code for read-only mode). Each extends `WidgetType` with `toDOM()` and `eq()`.
 
 ### String node structure
 

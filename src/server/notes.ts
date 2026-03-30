@@ -47,10 +47,15 @@ function notePath(notesDir: string, slug: string): string {
   return path.join(notesDir, `${slug}.edn`);
 }
 
+export interface NoteEntry {
+  metadata: NoteMetadata;
+  source: string;
+}
+
 export async function buildIndex(
   notesDir: string,
-): Promise<Map<string, NoteMetadata>> {
-  const result = new Map<string, NoteMetadata>();
+): Promise<Map<string, NoteEntry>> {
+  const result = new Map<string, NoteEntry>();
   const glob = new Bun.Glob("*.edn");
 
   for await (const filename of glob.scan({ cwd: notesDir })) {
@@ -59,7 +64,7 @@ export async function buildIndex(
       const source = await Bun.file(filePath).text();
       const metadata = extractMetadata(source);
       if (metadata) {
-        result.set(metadata.slug, metadata);
+        result.set(metadata.slug, { metadata, source });
       } else {
         console.warn(`Skipping malformed note: ${filename}`);
       }
@@ -71,12 +76,11 @@ export async function buildIndex(
   return result;
 }
 
-function sortedIndex(idx: Map<string, NoteMetadata>): NoteMetadata[] {
+function sortedIndex(idx: Map<string, NoteEntry>): NoteEntry[] {
   return Array.from(idx.values()).sort((a, b) => {
-    // Sort by created descending, then slug ascending as tiebreaker
-    const dateCompare = b.created.localeCompare(a.created);
+    const dateCompare = b.metadata.created.localeCompare(a.metadata.created);
     if (dateCompare !== 0) return dateCompare;
-    return a.slug.localeCompare(b.slug);
+    return a.metadata.slug.localeCompare(b.metadata.slug);
   });
 }
 
@@ -110,7 +114,7 @@ export async function writeNote(
 
   // Update in-memory index
   const metadata = result.note.metadata;
-  index.set(slug, metadata);
+  index.set(slug, { metadata, source });
 
   return metadata;
 }
@@ -134,7 +138,7 @@ export async function deleteNote(
 
 // --- In-memory index singleton ---
 
-let index: Map<string, NoteMetadata> = new Map();
+let index: Map<string, NoteEntry> = new Map();
 let watcher: FSWatcher | null = null;
 
 export async function initIndex(notesDir: string): Promise<void> {
@@ -142,7 +146,7 @@ export async function initIndex(notesDir: string): Promise<void> {
   console.log(`Index initialized: ${index.size} notes`);
 }
 
-export function getIndex(): NoteMetadata[] {
+export function getIndex(): NoteEntry[] {
   return sortedIndex(index);
 }
 
@@ -167,7 +171,7 @@ export function startWatcher(notesDir: string): void {
           const source = await file.text();
           const metadata = extractMetadata(source);
           if (metadata) {
-            index.set(slug, metadata);
+            index.set(slug, { metadata, source });
           }
         } else {
           index.delete(slug);

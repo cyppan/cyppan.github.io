@@ -13,21 +13,19 @@ import {
   writeNote,
 } from "./notes.ts";
 
-const VALID_NOTE = `(defnote test-note
-  {:tags [:test]
+const VALID_NOTE = `(defnote "Test Note"
+  {:slug 'test-note
+   :tags [:test]
    :created "2026-03-20"}
 
-  "# Test Note
-
-   Some content.")
+  "Some content.")
 `;
 
-const VALID_NOTE_2 = `(defnote second-note
-  {:tags [:demo]
+const VALID_NOTE_2 = `(defnote "Second Note"
+  {:slug 'second-note
+   :tags [:demo]
    :public true
-   :created "2026-03-19"}
-
-  "# Second Note")
+   :created "2026-03-19"})
 `;
 
 const MALFORMED_NOTE = `(not-a-defnote broken`;
@@ -97,10 +95,10 @@ describe("buildIndex", () => {
     const idx = await buildIndex(tmpDir);
 
     expect(idx.size).toBe(2);
-    expect(idx.get("test-note")?.slug).toBe("test-note");
-    expect(idx.get("test-note")?.title).toBe("Test Note");
-    expect(idx.get("test-note")?.tags).toEqual(["test"]);
-    expect(idx.get("second-note")?.public).toBe(true);
+    expect(idx.get("test-note")?.metadata.slug).toBe("test-note");
+    expect(idx.get("test-note")?.metadata.title).toBe("Test Note");
+    expect(idx.get("test-note")?.metadata.tags).toEqual(["test"]);
+    expect(idx.get("second-note")?.metadata.public).toBe(true);
   });
 
   test("skips malformed files", async () => {

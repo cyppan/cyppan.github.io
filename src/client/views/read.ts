@@ -1,19 +1,28 @@
+import { fetchNote } from "../data.js";
 import { createEditor } from "../editor/setup.js";
 
 export async function mountReadView(
   target: HTMLElement,
   slug: string,
 ): Promise<void> {
-  const res = await fetch(`/api/notes/${slug}`);
-  if (!res.ok) {
-    target.innerHTML =
-      res.status === 404
-        ? `<p>Note <strong>${slug}</strong> not found.</p>`
-        : `<p>Error loading note: ${res.status}</p>`;
+  let source: string;
+  try {
+    const note = await fetchNote(slug);
+    source = note.source;
+  } catch (e) {
+    const msg =
+      e instanceof Error && e.message === "not-found"
+        ? `Note <strong>${slug}</strong> not found.`
+        : `Error loading note.`;
+    target.innerHTML = `<p>${msg}</p>`;
     return;
   }
 
-  const { source } = (await res.json()) as { source: string };
+  const nav = document.createElement("a");
+  nav.className = "nav-back";
+  nav.href = "/";
+  nav.textContent = "← notes";
+  target.appendChild(nav);
 
   const container = document.createElement("div");
   container.className = "editor-container";

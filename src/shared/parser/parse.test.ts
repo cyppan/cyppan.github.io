@@ -3,13 +3,12 @@ import { extractMetadata, parseNote } from "./parse.ts";
 
 describe("parseNote", () => {
   test("minimal note", () => {
-    const source = `(defnote hello-world
-  {:tags [:test]
+    const source = `(defnote "Hello World"
+  {:slug 'hello-world
+   :tags [:test]
    :created "2026-03-20"}
 
-  "# Hello World
-
-   A minimal test note.")`;
+  "A minimal test note.")`;
 
     const result = parseNote(source);
     expect(result.ok).toBe(true);
@@ -23,12 +22,13 @@ describe("parseNote", () => {
   });
 
   test("full metadata", () => {
-    const source = `(defnote my-note
-  {:tags [:architecture :personal-tools]
+    const source = `(defnote "My Note Title"
+  {:slug 'my-note
+   :tags [:architecture :personal-tools]
    :public true
    :created "2026-03-20"}
 
-  "# My Note Title")`;
+  "Some content.")`;
 
     const result = parseNote(source);
     expect(result.ok).toBe(true);
@@ -44,47 +44,26 @@ describe("parseNote", () => {
     expect(result.note.metadata.title).toBe("My Note Title");
   });
 
-  test("no title in string block", () => {
-    const source = `(defnote no-title
+  test("no slug returns error", () => {
+    const source = `(defnote "No Slug"
   {:tags [:test]
    :created "2026-03-20"}
 
-  "Just some text without a heading.")`;
+  "Some text.")`;
 
     const result = parseNote(source);
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-
-    expect(result.note.metadata.title).toBeNull();
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors[0]?.message).toContain(":slug");
   });
 
-  test("no metadata map", () => {
-    const source = `(defnote bare-note "# Bare Note")`;
+  test("no title string returns error", () => {
+    const source = `(defnote {:slug 'bare-note})`;
 
     const result = parseNote(source);
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-
-    expect(result.note.metadata.slug).toBe("bare-note");
-    expect(result.note.metadata.tags).toEqual([]);
-    expect(result.note.metadata.public).toBe(false);
-    expect(result.note.metadata.created).toBe("");
-    expect(result.note.metadata.title).toBe("Bare Note");
-  });
-
-  test("multiple string blocks — title from first", () => {
-    const source = `(defnote multi
-  {:tags [] :created "2026-01-01"}
-
-  "# First Heading"
-
-  "# Second Heading")`;
-
-    const result = parseNote(source);
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-
-    expect(result.note.metadata.title).toBe("First Heading");
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors[0]?.message).toContain("title");
   });
 
   test("empty file returns error", () => {
@@ -99,7 +78,7 @@ describe("parseNote", () => {
     expect(result.errors[0]?.message).toContain("defnote");
   });
 
-  test("no slug returns error", () => {
+  test("no defnote form returns error", () => {
     const result = parseNote("(defnote)");
     expect(result.ok).toBe(false);
   });
@@ -107,13 +86,14 @@ describe("parseNote", () => {
 
 describe("extractMetadata", () => {
   test("returns metadata on valid input", () => {
-    const source = `(defnote test-note
-  {:tags [:a :b] :public true :created "2026-03-20"}
-  "# Test Note")`;
+    const source = `(defnote "Test Note"
+  {:slug 'test-note
+   :tags [:a :b] :public true :created "2026-03-20"})`;
 
     const meta = extractMetadata(source);
     expect(meta).not.toBeNull();
     expect(meta?.slug).toBe("test-note");
+    expect(meta?.title).toBe("Test Note");
     expect(meta?.tags).toEqual(["a", "b"]);
     expect(meta?.public).toBe(true);
   });
@@ -133,7 +113,7 @@ describe("sample files", () => {
     expect(meta?.tags).toEqual(["architecture", "personal-tools"]);
     expect(meta?.public).toBe(true);
     expect(meta?.created).toBe("2026-03-20");
-    expect(meta?.title).toBe("Creating an innovative note system");
+    expect(meta?.title).toBe("Creating a note system");
   });
 
   test("hello-world.edn", async () => {

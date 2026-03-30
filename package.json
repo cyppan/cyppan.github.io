@@ -9,6 +9,7 @@
     "dev:server": "bun run --hot src/server/index.ts",
     "dev:client": "vite",
     "build": "bun run build:grammar && vite build",
+    "build:static": "bun run build && bun scripts/build-static.ts",
     "start": "NODE_ENV=production bun run src/server/index.ts",
     "check": "bun run build:grammar && biome check . && tsc --noEmit",
     "test": "bun run build:grammar && bun test"
@@ -31,6 +32,7 @@
     "@lezer/lr": "^1.4.8",
     "@lezer/markdown": "^1.6.3",
     "codemirror": "^6.0.2",
+    "highlight.js": "^11.11.1",
     "hono": "^4.12.8"
   }
 }
