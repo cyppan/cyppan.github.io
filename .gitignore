@@ -37,3 +37,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Generated parser files
 src/shared/parser/parser.js
 src/shared/parser/parser.terms.js
+
+# Playwright MCP
+.playwright-mcp/
