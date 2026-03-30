@@ -7,8 +7,8 @@ async function route(): Promise<void> {
   app.innerHTML = "";
 
   const pathname = window.location.pathname;
-  const editMatch = pathname.match(/^\/edit\/([a-z0-9-]+)$/);
-  const readMatch = pathname.match(/^\/n\/([a-z0-9-]+)$/);
+  const editMatch = pathname.match(/^\/edit\/([a-z0-9-]+)\/?$/);
+  const readMatch = pathname.match(/^\/n\/([a-z0-9-]+)\/?$/);
 
   if (editMatch?.[1]) {
     const { mountEditView } = await import("./views/edit.js");
