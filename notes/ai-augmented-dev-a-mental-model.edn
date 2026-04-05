@@ -1,0 +1,264 @@
+(defnote "# AI Augmented Development - A Mental Model"
+  {:slug 'ai-augmented-dev-a-mental-model
+   :tags [:ai-automation :harness-engineering]
+   :public true
+   :created "2026-04-02"}
+
+  (preview
+    "```
+           Judgment delegation                           
+
+      human ◄──────────────► delegated             
+      human frames,           agent interprets,    
+      evaluates,              ships                
+      chooses                 autonomously         
+  
+             Loop tightness
+
+      tight ◄──────────────► loose
+      frequent            agent runs
+      exchanges,          uninterrupted,
+      constant feedback   review at the end
+    ```")
+
+  (toc
+    (section "The Two Axis Mental Model"
+      (chunk "Judgment delegation")
+      (chunk "Loop tightness")
+      (chunk "Why only two dimensions"))
+    (section "Contextual factors")
+    (section "Patterns in the wild")
+    (section "The adjustment cycle")
+    (section "The skill preservation problem")
+    (section "Stress tests"
+      (chunk "The junior developer")
+      (chunk "The high-velocity organization"))
+    (section "References")
+    (section "Open Questions"))
+  
+  (section "## The Two Axis Mental Model"
+    "Any collaboration between a human and an AI agent can be characterized by two observable properties, regardless of the tools, the model, or the organization.
+
+    ```
+           Judgment delegation                           
+
+      human ◄──────────────► delegated             
+      human frames,           agent interprets,    
+      evaluates,              ships                
+      chooses                 autonomously         
+  
+             Loop tightness
+
+      tight ◄──────────────► loose
+      frequent            agent runs
+      exchanges,          uninterrupted,
+      constant feedback   review at the end
+    ```"
+
+    (chunk "### Judgment delegation"
+      "Who makes the call, and when.
+
+      At one end, the human frames the problem, chooses the approach, and evaluates every output. At the other end, the agent interprets requirements, selects strategies, and ships without human validation. In between, judgment is shared — the agent makes intermediate decisions, the human validates at defined gates.
+
+      This is not binary. Different types of judgment can be delegated independently: architectural decisions, implementation details, testing strategy, deployment timing, product direction, prioritization. You might retain judgment on API design while fully delegating test generation. You might delegate all implementation details but retain product-level judgment on what to build next. You might feed market research and client feedback to an agent and delegate the judgment of what features to propose entirely.")
+
+    (chunk "### Loop tightness"
+      "How frequently information flows between the human and the agent — in both directions.
+
+      A tight loop means frequent exchanges. A loose loop means the agent runs largely uninterrupted.
+
+      Loop tightness covers four distinct functions:
+      
+      - **Review** — checking what the agent produced (looking backward)
+      - **Course correction** — redirecting the approach mid-flight (intervening)
+      - **Context injection** — feeding information the agent could not access or infer (looking forward)
+      - **Approval gates** — explicitly authorizing actions before execution, often for security or safety reasons (e.g., approving a bash command, a URL fetch, a deployment, a database migration). These are not judgment calls about *what* to do — they are permission checks on *whether* to do it.
+
+      The distinction between approval gates and judgment matters: you can fully delegate the decision of which command to run while still requiring explicit approval before execution. This is common in agentic tooling where the agent proposes actions and the human clicks 'approve' — the loop is tight by design, but the judgment is delegated.
+
+      Loop tightness is not the inverse of judgment delegation. You can fully delegate judgment while maintaining tight loops (feeding the agent domain context without second-guessing its decisions). You can retain full judgment with loose loops (framing everything upfront, reviewing only the final output).")
+
+    (chunk "### Why only two dimensions"
+      "The test: if you observe someone working with an AI agent and you know nothing about the task, you can assess these two properties. You cannot assess the scope, the risk, or the stakes without additional context.
+
+      The two axes are not equally observable, though. Loop tightness is directly and unambiguously visible 
+      
+      - you count the interactions, you measure the time between exchanges, you see the back-and-forth. Judgment delegation is observable *structurally* 
+      - you can see whether the workflow includes human decision points, who has the last word before something ships, whether the human frames the problem or the agent does. But you cannot easily observe whether the human is *actually exercising* judgment or rubber-stamping. The approval-gated agent pattern illustrates this: the human clicks "approve" on every action, which looks like retained judgment, but in practice the judgment may be fully delegated.
+
+      This gap between structural and actual judgment delegation is not a flaw in the model — it is precisely what the skill preservation section warns against. The out-of-the-loop problem (Endsley, 1995) describes exactly this: judgment silently drifts from "human" to "delegated" as situation awareness degrades, without anyone deciding to make that shift. A workflow designed for human judgment can become de facto delegated through erosion. Recognizing this drift is one of the reasons to pay attention to the two axes in the first place.
+
+      Scope, risk, reversibility, and other candidate dimensions all influence *why* you end up at a given position on the two axes. Including one in the model opens the door to all the others, and the model becomes a checklist rather than a lens. These factors belong in the contextual layer."))
+
+  (section "## Contextual factors"
+    "Multiple factors influence where a collaboration sits on the two dimensions. These are not part of the model — they are inputs to it.
+    ```
+    ┌──────────────┐   ┌─────────────────┐   ┌──────────────────┐
+    │    Task      │   │ Infrastructure  │   │ People & model   │
+    │              │   │                 │   │                  │
+    │ scope        │   │ tests, CI/CD    │   │ maturity         │
+    │ reversibility│   │ agent tooling   │   │ model capability │
+    │ risk         │   │ automated       │   │ domain expertise │
+    │ novelty      │   │ feedback        │   │ concentration    │
+    └──────┬───────┘   └───────┬─────────┘   └─────────┬────────┘
+           │                   │                       │
+           └───────────────────┼───────────────────────┘
+                               │
+                               ▼
+                ┌────────────────────────────┐
+                │   Position on the axes     │
+                │                            │
+                │  judgment ◄────► delegation│
+                │  tight    ◄────► loose     │
+                └────────────────────────────┘
+    ```
+    **Task properties**
+    - Scope — narrow and well-defined vs. broad with fuzzy inputs
+    - Reversibility — a PR is trivial to revert, a production deployment less so, a customer-facing communication not at all
+    - Risk — internal tooling vs. revenue-critical path vs. safety-critical system vs. personal side project
+    - Novelty — routine task with known patterns vs. unexplored territory
+
+    **Infrastructure**
+    - Verification quality — test coverage, CI/CD pipeline, staging environments, type systems
+    - Agent tooling (agency) — what the agent can access and do on its own. Poor agency forces frequent interactions, but these are plumbing (copy-pasting outputs, manually fetching data), not meaningful loop tightness. Investing in agency reduces noise in the loop and lets you focus interactions on judgment and context.
+    - Automated feedback — linters, formatters, automated reviews that filter out low-quality outputs before a human sees them
+
+    **People and model**
+    - Maturity with agentic workflows — calibrated trust, experience evaluating AI outputs
+    - Model capabilities — better models make the same pattern viable for harder tasks
+    - Domain expertise concentration — if critical knowledge lives in one person's head, you cannot loosen the loop without capturing that knowledge somewhere
+    ")
+
+  (section "## Patterns in the wild"
+    "```
+                        Judgment delegation
+          Human ◄──────────────────────────────► Delegated
+
+    Tight ┬  ┌─────────────────────────────────────────────┐
+          │  │                                             │
+          │  │  code             guided        supervised  │
+          │  │  companion        migration     autonomy    │
+          │  │                                             │
+          │  │                              approval-gated │
+     Loop │  │                              agent          │
+          │  │                                             │
+          │  │                                             │
+          │  │  upfront          batch         autonomous  │
+          │  │  delegation       generator     pipeline    │
+          │  │                                             │
+    Loose ┴  └─────────────────────────────────────────────┘
+    ```
+
+    | Pattern | Judgment | Loop | What it looks like |
+    |---|---|---|---|
+    | Code companion | Human | Tight | Interactive pair-programming with Cursor or Claude Code. AI proposes, human disposes at every step. |
+    | Batch generator | Human | Loose | Agent generates test suites or boilerplate on each PR. Human reviews once, no back-and-forth during generation. |
+    | Guided migration | Shared | Tight | Agent handles a large migration, makes intermediate architectural calls, human steers continuously with domain knowledge. |
+    | Autonomous pipeline | Delegated | Loose | Support ticket triggers agent that diagnoses, patches, tests, and proposes deployment. Human reviews maybe. |
+    | Supervised autonomy | Delegated | Tight | Agent decides what to do, but pings the human for domain context it cannot access. Human feeds info without overriding decisions. |
+    | Upfront delegation | Human | Loose | Human spends significant time on detailed spec/prompt, then lets agent execute with review only at the end. |
+    | Approval-gated agent | Delegated | Tight (mechanical) | Agent has full decision authority but every action requires explicit human approval before execution. Loop is tight but interactions are approvals, not judgment. |
+    ")
+
+  (section "## The adjustment cycle"
+    "You do not pick a pattern once. Your position on the two axes shifts over time as you invest in contextual factors, observe results, and adjust.
+
+    ```
+    ┌───────────────────────────────────────────────────────────┐
+    │                                                           │
+    │   LOOSENING                           TIGHTENING          │
+    │                                                           │
+    │   'I review 200 tests manually'       'Nobody can         │
+    │   'I paste the same context            explain this       │
+    │    into every prompt'                  architecture'      │
+    │                                       'I can't write      │
+    │   ► Invest in CI, agent access,        this code myself'  │
+    │     acceptance criteria                                   │
+    │   ► Delegate more, loosen loops       ► Reclaim judgment, │
+    │                                         tighten loops     │
+    │                                                           │
+    │          ──────────►                 ◄──────────          │
+    │         more delegation              more control         │
+    │         looser loops                 tighter loops        │
+    │                                                           │
+    └───────────────────────────────────────────────────────────┘
+    ```
+    
+    **Loosening:** you invest in better CI, give the agent more tool access, build automated acceptance criteria — and this lets you loosen the loop or delegate more judgment because the infrastructure catches what you used to catch manually. The friction that drives this is typically efficiency: 'I am reviewing 200 generated tests manually' or 'I keep pasting the same context into every prompt.'
+
+    **Tightening:** you notice quality dropping, skills atrophying, or growing uncertainty about what the agent actually ships — and this pushes you to tighten the loop or reclaim judgment. The friction here is typically quality or control: 'Nobody on the team can explain why this service is architected this way' or 'I realized I could not write this code myself anymore.'
+
+    Neither direction is inherently better. The cycle is about finding and maintaining an appropriate position given your current context — which itself changes as tasks, tools, people, and stakes evolve.")
+
+  (section "## The skill preservation problem"
+    "There is a strong case for *not* always pushing toward more delegation and looser loops — even when you could.
+
+    ```
+        Bainbridge's irony — the automation paradox
+    
+        more delegation ──► less practice ──► skill atrophy
+             ▲                                    │
+             │                                    ▼
+             │                          degraded evaluation
+             │                          capacity
+             │                                    │
+             │                                    ▼
+        automation works ◄── rubber-stamping ◄── 'reviewing' without
+        fine (most of         (silent drift)      understanding
+        the time)
+        ...until it doesn't,
+        and nobody can intervene.
+    ```
+
+    Bainbridge's "Ironies of Automation" (1983) identified a fundamental paradox in industrial automation: by removing operators from direct control, automation degrades the very skills they need when automation fails. The more reliable the automated system, the less prepared operators are to handle the rare but critical moments when intervention is needed. And when manual takeover *is* needed, it is precisely because something unusual is happening — requiring *more* skill, not less.
+
+    This translates directly to AI-augmented development. A developer who delegates all code generation to an agent progressively loses the ability to evaluate that code, and even more to take over when the agent produces something subtly wrong. The out-of-the-loop problem (Endsley, 1995) compounds this: passive monitoring degrades situation awareness, so even if you are "reviewing" agent output, your ability to catch problems deteriorates over time if you are never writing code yourself.
+
+    This has concrete implications:
+    - **Employability** — skills that atrophy through over-delegation are skills you no longer have. The agent is a tool that can be taken away; the skills are yours.
+    - **Quality control** — the ability to evaluate AI output depends on the ability to produce similar output yourself. Delegating execution without maintaining the underlying skill hollows out your capacity to judge.
+    - **Resilience** — when the agent fails, hallucinates, or encounters a problem outside its training, someone needs to take over. That someone needs to have been practicing.
+
+    This is a legitimate reason to intentionally maintain tighter loops and retain more judgment than strictly necessary — not out of distrust for the model, but to preserve your own capabilities.
+    ")
+
+  (section "## Stress tests"
+    (chunk "### The junior developer"
+      "The skill preservation argument assumes you *have* skills to preserve. A junior developer starting their career with AI agents faces a different problem: **skills that were never built in the first place**.
+
+      A junior using an agent as a code companion with tight loops and human judgment — that works well. The agent is a patient, always-available mentor. But the quality of the loop depends on the human's ability to engage meaningfully with the output. Reviewing code you could not have written yourself is a fundamentally different exercise from reviewing code you understand. You can "approve" without understanding. You can develop a false sense of competence built on pattern-matching rather than comprehension.
+
+      The model does not distinguish between loop interactions that *develop* skills and those that merely *exercise* existing ones — and it should not try to. The observability test applies: from the outside, a junior learning from an agent and a senior exercising existing judgment look the same. The difference is in the person, not in the collaboration structure.
+
+      This is an assumed limitation. The model describes *where you are* on the two axes, not *what that position does to you*. The effect depends on who you are going in. A junior and a senior at the same "code companion" pattern live radically different experiences, but the pattern is the same. It is the responsibility of the individual, a mentor, or a lead to decide whether a given pattern serves or hinders development at a given skill level.")
+  
+    (chunk "### The high-velocity organization"
+      "Consider: a well-funded startup, 6 months of runway to show traction, staffing treated as an adjustment variable. Their reasoning is straightforward — 'employability is not our problem, skill preservation is a luxury, we want maximum delegation and the loosest loops we can get away with, as fast as possible.'
+
+      In the short term, they may be right. Optimizing for skill preservation when you need to ship a product before your money runs out is a bad trade-off. The model should not moralize about this.
+
+      But it responds through a different angle: **the quality of delegated judgment depends on someone's ability to evaluate the outputs.** If nobody in the organization can review what the agent produces, you do not know what you are shipping. You gain velocity but lose quality control — and in a startup context, a critical bug in production or a security vulnerability can be more destructive than slow shipping.
+
+      The adjustment cycle addresses this directly: you cannot skip infrastructure investment (tests, CI, monitoring) without accepting proportional risk. Moving to looser loops and more delegation without the infrastructure to support it is a bet, not a strategy.
+
+      There is also a compounding organizational risk. A team operating at maximum delegation with high turnover accumulates two kinds of debt simultaneously: **technical debt** from code nobody fully understood when it was shipped, and **knowledge debt** from the absence of people who can reason about that code. Each departure takes what little residual comprehension existed. Each new arrival inherits a codebase they cannot understand without the agent that produced it — creating a dependency that deepens with every cycle. This is Bainbridge's irony at organizational scale: the system works until it does not, and when it breaks, there is no one left who can fix it.
+
+      The model accommodates this perspective — nothing prevents a high-velocity organization from operating at delegated judgment and loose loops. But it makes the trade-offs visible rather than implicit, which is precisely what high-stakes decisions need."))
+
+  (section "## References"
+    "- **Bainbridge (1983)** — 'Ironies of Automation.' Foundational paper (4700+ citations) on the paradoxes of automation: removing operators from direct control degrades the skills they need when automation fails. The more successful the automation, the greater the training investment needed.
+    - **Sheridan and Verplank (1978)** — 10 levels of automation in human-machine systems. Established that automation is a spectrum, not binary.
+    - **Parasuraman, Sheridan and Wickens (2000)** — Decomposed automation into four functions (information acquisition, information analysis, decision/action selection, action implementation). Shows judgment can be partially delegated across functions.
+    - **Endsley and Kiris (1995)** — 'The Out-of-the-Loop Performance Problem.' Full automation degrades situation awareness and recovery ability. Intermediate automation preserves better SA. Supports the case for intentional loop tightness.
+    - **SAE J3016** — Six levels of driving automation. Key boundary at L2/L3 where monitoring responsibility shifts from human to system.
+    - **Knight First Amendment Institute (2025)** — 'Levels of Autonomy for AI Agents.' Five user-centric levels (operator to observer). Argues autonomy is a design decision independent of capability.
+    - **SASE (Structured Agentic Software Engineering)** — Distinguishes agency (capacity to act, execute) from autonomy (capacity to self-direct, set goals). Agency is a contextual factor; autonomy maps to judgment delegation.")
+
+  (section "## Open Questions"
+    "1. **The judgment unbundling problem.** Different types of judgment (architectural, implementation, testing, deployment, product direction) can be delegated independently. When feeding external input like market research to generate a new product, or client feedback to shape features, you are delegating judgment at a level above code. Does the model need to account for this explicitly, or is it sufficient to note that 'judgment delegation' is itself multi-dimensional?
+
+    2. **Measurement.** Can these dimensions be quantified, or are they inherently qualitative? Indicative levels (like SAE L0-L5) might be useful in certain contexts like skill development and maturity assessment, but risk implying linearity and that more delegation is always better.
+
+    3. **Skill preservation thresholds.** At what point does delegation cross from 'efficient' to 'skill-degrading'? Is this measurable, or does it depend entirely on the individual and the domain?")
+
+  )

@@ -19,14 +19,14 @@ const highlightStyle = HighlightStyle.define([
   { tag: t.squareBracket, color: "#8a9199" },
   { tag: t.brace, color: "#8a9199" },
 
-  // Markdown tokens (from nested parser) — explicit serif to override
+  // Markdown tokens (from nested eparser) — explicit serif to override
   // monospace base. Plain paragraph text gets serif from the .cm-prose
   // mark decoration (see prose.ts). Tokens need explicit fontFamily
   // because CM6 flattens mark decorations with highlight spans into a
   // single element, so CSS inheritance doesn't apply.
-  { tag: t.heading1, fontSize: "1.4em", fontWeight: "bold", fontFamily: serif },
-  { tag: t.heading2, fontSize: "1.2em", fontWeight: "bold", fontFamily: serif },
-  { tag: t.heading3, fontSize: "1.1em", fontWeight: "bold", fontFamily: serif },
+  { tag: t.heading1, fontSize: "1.5em", fontWeight: "bold", fontFamily: serif },
+  { tag: t.heading2, fontSize: "1.4em", fontWeight: "bold", fontFamily: serif },
+  { tag: t.heading3, fontSize: "1.3em", fontWeight: "bold", fontFamily: serif },
   { tag: t.emphasis, fontStyle: "italic", fontFamily: serif },
   { tag: t.strong, fontWeight: "bold", fontFamily: serif },
   { tag: t.strikethrough, textDecoration: "line-through", fontFamily: serif },
@@ -36,7 +36,8 @@ const highlightStyle = HighlightStyle.define([
     textDecoration: "underline",
     fontFamily: serif,
   },
-  { tag: t.monospace, color: "#e45649", fontFamily: mono },
+  { tag: t.monospace, color: "#e45649", fontFamily: mono, fontSize: "14px" },
+  { tag: t.list, color: "#3a2f4a", fontFamily: serif },
   { tag: t.quote, color: "#6a737d", fontStyle: "italic" },
 ]);
 
@@ -49,7 +50,7 @@ export { highlightStyle as testHighlightStyle };
 // via the prose mark decoration (see prose.ts).
 export const notesTheme = EditorView.theme({
   "&": {
-    fontSize: "13px",
+    fontSize: "14px",
     fontFamily: mono,
   },
   ".cm-content": {
@@ -64,6 +65,13 @@ export const notesTheme = EditorView.theme({
   },
   ".cm-line": {
     padding: "0 8px",
+  },
+  ".cm-prose": {
+    fontFamily: "Junicode, serif",
+    fontSize: "17px",
+  },
+  ".cm-table-widget textarea": {
+    fontFamily: "Junicode, serif",
   },
   "&.cm-focused": {
     outline: "none",

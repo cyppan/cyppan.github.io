@@ -7,6 +7,7 @@ import {
   EditorView,
   ViewPlugin,
   type ViewUpdate,
+  WidgetType,
 } from "@codemirror/view";
 
 const proseMark = Decoration.mark({ class: "cm-prose" });
@@ -107,14 +108,103 @@ const prosePlugin = ViewPlugin.fromClass(
   { decorations: (v) => v.decorations },
 );
 
-export function proseDecoration(): Extension {
-  return [
-    prosePlugin,
-    EditorView.baseTheme({
-      ".cm-prose": {
-        fontFamily: "Junicode, serif",
-        fontSize: "19px",
+class BulletWidget extends WidgetType {
+  toDOM() {
+    const span = document.createElement("span");
+    span.textContent = "➜";
+    return span;
+  }
+  override eq() {
+    return true;
+  }
+}
+
+const bulletReplace = Decoration.replace({ widget: new BulletWidget() });
+
+function buildBulletDecorations(view: EditorView): DecorationSet {
+  const decorations: Range<Decoration>[] = [];
+  const tree = syntaxTree(view.state);
+
+  for (const { from, to } of view.visibleRanges) {
+    tree.iterate({
+      from,
+      to,
+      enter(node) {
+        if (node.name !== "StringContent") return;
+        // Skip code form strings
+        const strNode = node.node.parent;
+        const listNode = strNode?.parent;
+        if (listNode?.name === "List") {
+          const sym = listNode.getChild("Symbol");
+          if (sym && view.state.doc.sliceString(sym.from, sym.to) === "code") {
+            return;
+          }
+        }
+
+        const doc = view.state.doc;
+        const contentFrom = node.from;
+        const contentTo = node.to;
+        if (contentFrom >= contentTo) return;
+
+        const firstLine = doc.lineAt(contentFrom);
+        const baseIndent = contentFrom - firstLine.from;
+
+        let pos = contentFrom;
+        while (pos < contentTo) {
+          const line = doc.lineAt(pos);
+          const text = line.text;
+
+          // Skip structural indent (up to baseIndent spaces)
+          let skipped = 0;
+          if (pos !== contentFrom) {
+            while (
+              skipped < baseIndent &&
+              skipped < text.length &&
+              text[skipped] === " "
+            ) {
+              skipped++;
+            }
+          } else {
+            skipped = contentFrom - line.from;
+          }
+
+          if (
+            skipped < text.length &&
+            text[skipped] === "-" &&
+            skipped + 1 < text.length &&
+            text[skipped + 1] === " "
+          ) {
+            const dashPos = line.from + skipped;
+            decorations.push(bulletReplace.range(dashPos, dashPos + 1));
+          }
+
+          if (line.to >= contentTo) break;
+          pos = line.to + 1;
+        }
       },
-    }),
-  ];
+    });
+  }
+
+  return RangeSet.of(decorations, true);
+}
+
+const bulletPlugin = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet;
+
+    constructor(view: EditorView) {
+      this.decorations = buildBulletDecorations(view);
+    }
+
+    update(update: ViewUpdate) {
+      if (update.docChanged || update.viewportChanged) {
+        this.decorations = buildBulletDecorations(update.view);
+      }
+    }
+  },
+  { decorations: (v) => v.decorations },
+);
+
+export function proseDecoration(): Extension {
+  return [prosePlugin, bulletPlugin];
 }

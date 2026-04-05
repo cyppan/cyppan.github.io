@@ -1,4 +1,3 @@
-
 Default to using Bun instead of Node.js.
 
 - Use `bun <file>` instead of `node <file>` or `ts-node <file>`
@@ -131,3 +130,8 @@ Widget classes (`src/client/editor/widgets/`): `MediaWidget` (image preview), `R
 ### String node structure
 
 Grammar: `String[isolate] { '"' StringContent? '"' }`. The `[isolate]` wrap enables `parseMixed` to target `StringContent` for nested markdown. The `"` quotes are anonymous tokens — they appear as child nodes but don't have names, which breaks CM6 utilities that rely on `firstChild`/`lastChild` being meaningful (like `foldInside` and `bracketedAligned`). The closing `"` is at `node.to - 1` (not `node.to`).
+
+## Roadmap
+
+- separate tables and ascii diagrams from other markdown, and make them scrollable, to better support mobile
+- simplify auto-indentation in markdown multiline, when hitting Enter

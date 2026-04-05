@@ -16,9 +16,10 @@ import { Prec } from "@codemirror/state";
 import { type Command, keymap } from "@codemirror/view";
 import type { Input } from "@lezer/common";
 import { parseMixed } from "@lezer/common";
+import { Table } from "@lezer/markdown";
 import { parser as ednParser } from "../../shared/parser/parser.js";
 
-const mdSupport = markdown();
+const mdSupport = markdown({ extensions: [Table] });
 const mdParser = mdSupport.language.parser;
 
 // Compute overlay ranges that strip the common leading indentation from

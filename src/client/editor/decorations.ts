@@ -18,6 +18,7 @@ import { nodeText, unescapeString } from "../../shared/parser/util.js";
 import { CodeWidget } from "./widgets/code.js";
 import { MediaWidget } from "./widgets/media.js";
 import { RefWidget } from "./widgets/ref.js";
+import { slugify, TocLinkWidget } from "./widgets/toc.js";
 
 /** Extract keyword-value pairs from a Map node as a Record */
 function parseMapEntries(
@@ -130,6 +131,56 @@ function widgetForList(
   }
 }
 
+/** Collect TocLinkWidget decorations for all section/chunk strings inside a (toc ...) node.
+ *  Uses anchorPositions (slug → doc position) to resolve scroll targets. */
+function tocLinkDecorations(
+  source: string,
+  tocNode: SyntaxNode,
+  anchorPositions: Map<string, number>,
+): Range<Decoration>[] {
+  const result: Range<Decoration>[] = [];
+  for (const sectionNode of tocNode.getChildren("List")) {
+    const sectionSyms = sectionNode.getChildren("Symbol");
+    if (!sectionSyms[0] || nodeText(source, sectionSyms[0]) !== "section")
+      continue;
+    const sectionStrings = sectionNode.getChildren("String");
+    const sectionStr = sectionStrings[0];
+    if (sectionStr) {
+      const label = unescapeString(nodeText(source, sectionStr));
+      const id = slugify(label);
+      const pos = anchorPositions.get(id);
+      if (id && pos !== undefined) {
+        result.push(
+          Decoration.widget({
+            widget: new TocLinkWidget(id, pos),
+            side: 1,
+          }).range(sectionStr.to),
+        );
+      }
+    }
+    for (const chunkNode of sectionNode.getChildren("List")) {
+      const chunkSyms = chunkNode.getChildren("Symbol");
+      if (!chunkSyms[0] || nodeText(source, chunkSyms[0]) !== "chunk") continue;
+      const chunkStrings = chunkNode.getChildren("String");
+      const chunkStr = chunkStrings[0];
+      if (chunkStr) {
+        const label = unescapeString(nodeText(source, chunkStr));
+        const id = slugify(label);
+        const pos = anchorPositions.get(id);
+        if (id && pos !== undefined) {
+          result.push(
+            Decoration.widget({
+              widget: new TocLinkWidget(id, pos),
+              side: 1,
+            }).range(chunkStr.to),
+          );
+        }
+      }
+    }
+  }
+  return result;
+}
+
 // tree.iterate() does NOT enter overlay-mounted markdown trees,
 // so it only finds outer EDN nodes (List, Symbol, etc.) — exactly
 // what we need to detect DSL forms.
@@ -139,9 +190,47 @@ function buildDecorations(state: EditorState): DecorationSet {
   const source = state.doc.toString();
   const readonly = !state.facet(EditorView.editable);
 
+  // First pass (readonly only): build slug → doc-position map for content
+  // section/chunk forms, so TocLinkWidget can scroll via EditorView.scrollIntoView.
+  const anchorPositions = new Map<string, number>();
+  if (readonly) {
+    tree.iterate({
+      enter(node) {
+        if (node.name !== "List") return;
+        const syms = node.node.getChildren("Symbol");
+        const firstName = syms[0] ? nodeText(source, syms[0]) : null;
+        if (firstName !== "section" && firstName !== "chunk") return;
+        const strings = node.node.getChildren("String");
+        const strNode = strings[0];
+        if (!strNode) return;
+        const label = unescapeString(nodeText(source, strNode));
+        if (!/^#{1,6}\s/.test(label)) return;
+        const stripped = label.replace(/^#{1,6}\s+/, "");
+        const id = slugify(stripped);
+        if (id) anchorPositions.set(id, node.from);
+      },
+    });
+  }
+
   tree.iterate({
     enter(node) {
       if (node.name !== "List") return;
+
+      if (readonly) {
+        // TOC link widgets — add after each section/chunk string, don't stop descent
+        const syms = node.node.getChildren("Symbol");
+        if (syms[0] && nodeText(source, syms[0]) === "toc") {
+          for (const d of tocLinkDecorations(
+            source,
+            node.node,
+            anchorPositions,
+          )) {
+            if (!isInsideFold(state, d.from)) decorations.push(d);
+          }
+          // no return false — continue descending for inner widgets
+        }
+      }
+
       const line = state.doc.lineAt(node.from);
       const indent = node.from - line.from;
       const result = widgetForList(source, node.node, indent, readonly);
@@ -222,6 +311,16 @@ const dslWidgetTheme = EditorView.baseTheme({
   },
   ".cm-preview-line": {
     background: "#f0f7ff",
+  },
+  ".cm-toc-link": {
+    color: "#4078f2",
+    textDecoration: "none",
+    marginLeft: "4px",
+    fontSize: "0.8em",
+    cursor: "pointer",
+  },
+  ".cm-toc-link:hover": {
+    textDecoration: "underline",
   },
 });
 

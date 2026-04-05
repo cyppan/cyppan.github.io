@@ -22,7 +22,9 @@ import {
 } from "./fold.js";
 import { notesLang } from "./language.js";
 import { proseDecoration } from "./prose.js";
+import { tableDecoration } from "./table.js";
 import { notesHighlightExt, notesTheme, readTheme } from "./theme.js";
+import { wrapIndent } from "./wrap-indent.js";
 
 export function createEditor(options: {
   target: HTMLElement;
@@ -40,6 +42,7 @@ export function createEditor(options: {
     blockquoteDecoration(),
     proseDecoration(),
     dslWidgets(),
+    tableDecoration(),
     lineNumbers(),
     ednFoldGutter(),
     bracketMatching(),
@@ -52,6 +55,7 @@ export function createEditor(options: {
       ...foldKeymap,
     ]),
     EditorView.lineWrapping,
+    wrapIndent(),
     highlightWhitespace(),
   ];
 
