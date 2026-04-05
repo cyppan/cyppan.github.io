@@ -14,6 +14,7 @@ import {
 } from "@codemirror/view";
 import { blockquoteDecoration } from "./blockquote.js";
 import { dslWidgets } from "./decorations.js";
+import { fencedCodeDecoration } from "./fenced-code.js";
 import {
   autoFoldCode,
   autoFoldPreview,
@@ -43,6 +44,7 @@ export function createEditor(options: {
     proseDecoration(),
     dslWidgets(),
     tableDecoration(),
+    fencedCodeDecoration(),
     lineNumbers(),
     ednFoldGutter(),
     bracketMatching(),

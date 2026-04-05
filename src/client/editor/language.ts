@@ -1,7 +1,4 @@
-import {
-  insertNewlineContinueMarkup,
-  markdown,
-} from "@codemirror/lang-markdown";
+import { markdown } from "@codemirror/lang-markdown";
 import {
   delimitedIndent,
   foldInside,
@@ -12,7 +9,7 @@ import {
   LRLanguage,
   syntaxTree,
 } from "@codemirror/language";
-import { Prec } from "@codemirror/state";
+import { EditorSelection, Prec } from "@codemirror/state";
 import { type Command, keymap } from "@codemirror/view";
 import type { Input } from "@lezer/common";
 import { parseMixed } from "@lezer/common";
@@ -213,33 +210,24 @@ const stringIndent = indentService.of((context, pos) => {
   return closing ? col : col + 1;
 });
 
-// Wrap the markdown insertNewlineContinueMarkup command so that when it
-// fires inside a String, the new line gets the string's base indent
-// prepended. Without this, the markdown command inserts `\n> ` at column 0.
-const wrappedMarkdownEnter: Command = (view) => {
+// Simple Enter handler inside strings: copy the current line's indentation.
+const stringEnter: Command = (view) => {
   const pos = view.state.selection.main.head;
   const str = findEnclosingString(syntaxTree(view.state), pos);
   if (!str || pos <= str.from || pos >= str.to) return false;
 
-  const openingLine = view.state.doc.lineAt(str.from);
-  const col = str.from - openingLine.from;
-  const baseIndent = " ".repeat(col + 1);
-
-  // Let the markdown command handle Enter
-  if (insertNewlineContinueMarkup(view)) {
-    // Fix indent on the new line
-    const newPos = view.state.selection.main.head;
-    const line = view.state.doc.lineAt(newPos);
-    if (!line.text.startsWith(baseIndent)) {
-      view.dispatch({
-        changes: { from: line.from, insert: baseIndent },
-        selection: { anchor: newPos + baseIndent.length },
-      });
-    }
-    return true;
-  }
-
-  return false;
+  const line = view.state.doc.lineAt(pos);
+  const indent = line.text.match(/^\s*/)?.[0] ?? "";
+  view.dispatch(
+    view.state.changeByRange((range) => {
+      const insert = `\n${indent}`;
+      return {
+        changes: { from: range.from, to: range.to, insert },
+        range: EditorSelection.cursor(range.from + insert.length),
+      };
+    }),
+  );
+  return true;
 };
 
 export function notesLang(): LanguageSupport {
@@ -247,6 +235,6 @@ export function notesLang(): LanguageSupport {
     mdSupport.support,
     stringIndent,
     // Must be higher priority than the markdown keymap (which uses Prec.high)
-    Prec.highest(keymap.of([{ key: "Enter", run: wrappedMarkdownEnter }])),
+    Prec.highest(keymap.of([{ key: "Enter", run: stringEnter }])),
   ]);
 }

@@ -295,15 +295,29 @@ const dslWidgetTheme = EditorView.baseTheme({
   ".cm-code-widget": {
     display: "block",
     padding: "4px 0",
+    overflow: "hidden",
   },
   ".cm-code-widget pre": {
     padding: "12px 16px",
     background: "#f6f8fa",
     borderRadius: "6px",
-    overflow: "auto",
+    overflowX: "auto",
+    overflowY: "hidden",
     fontFamily: mono,
     fontSize: "13px",
     lineHeight: "1.45",
+    scrollbarWidth: "thin",
+    scrollbarColor: "#c0c0c0 transparent",
+  },
+  ".cm-code-widget pre::-webkit-scrollbar": {
+    height: "6px",
+  },
+  ".cm-code-widget pre::-webkit-scrollbar-thumb": {
+    background: "#c0c0c0",
+    borderRadius: "3px",
+  },
+  ".cm-code-widget pre::-webkit-scrollbar-track": {
+    background: "transparent",
   },
   ".cm-code-widget code": {
     fontFamily: "inherit",

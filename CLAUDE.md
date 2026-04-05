@@ -66,10 +66,10 @@ The editor uses a custom Lezer grammar for EDN syntax, with `parseMixed` nesting
 
 **Key consequence**: inside string content, CM6 treats markdown as the active language. Any CM6 feature that walks the syntax tree (indentation, folding, autocomplete) will hit markdown's behavior inside strings, not our EDN rules. This affects:
 
-- **Indentation**: `indentNodeProp` on the `String` node is never reached inside strings because the markdown language takes over. We use an `indentService` (top-level facet, runs before language-specific indent) to intercept indentation inside strings and return `column of " + 1`. Subsequent lines deep inside the string may use markdown's indent rules — this is acceptable.
+- **Indentation**: `indentNodeProp` on the `String` node is never reached inside strings because the markdown language takes over. We use an `indentService` (top-level facet, runs before language-specific indent) to intercept indentation inside strings and return `column of " + 1`.
 - **Folding**: The markdown parser has built-in `foldNodeProp` on Section/heading nodes. We use a custom fold gutter (`src/client/editor/fold.ts`) that only shows fold markers for EDN nodes (List/Vector/Map/String), ignoring markdown fold props entirely.
 - **Fonts/styling**: The base editor font is **monospace** (DSL-first). String content (prose) gets serif via a `Decoration.mark` with class `.cm-prose` applied to `StringContent` ranges by a `ViewPlugin` in `src/client/editor/prose.ts`. Plain paragraph text inside strings gets NO highlight class from CM6 — it inherits serif from the `.cm-prose` mark. Markdown highlight tokens (headings, bold, etc.) need **explicit `fontFamily: serif`** in the `HighlightStyle` because CM6 flattens mark decorations with highlight spans into a single element (no CSS inheritance). `t.monospace` (backtick code) keeps explicit monospace to override the prose serif. EDN tokens inherit monospace from the base — no per-token `fontFamily` needed.
-- **Markdown commands**: The `insertNewlineContinueMarkup` command (auto-continues `> ` and `- ` on Enter) doesn't know about the EDN string indent. We wrap it at `Prec.highest` to let it run, then prepend the string's base indent to the new line.
+- **Enter key**: Inside strings, a simple `stringEnter` command at `Prec.highest` overrides markdown's Enter handler. It just copies the current line's leading whitespace — no markdown continuation logic (`> `, `- `, etc.).
 - **Any future feature** touching the parse tree inside strings will face the same issue: the mounted markdown tree takes over. The pattern for working around it: use a top-level facet/service (like `indentService`, `foldService`) that walks up the tree to find the EDN ancestor node, bypassing the inner markdown language. For visual features (like fold gutter), replace the standard CM6 extension with a custom one that only queries EDN nodes.
 
 ### Overlay vs. non-overlay mounting (critical)
@@ -127,11 +127,14 @@ DSL forms are **never replaced** — the EDN text always stays visible and edita
 
 Widget classes (`src/client/editor/widgets/`): `MediaWidget` (image preview), `RefWidget` (clickable link for read-only mode), `CodeWidget` (syntax-highlighted code for read-only mode). Each extends `WidgetType` with `toDOM()` and `eq()`.
 
+### Fenced code block decoration (`src/client/editor/fenced-code.ts`)
+
+In read-only mode, fenced code blocks (` ``` `) inside markdown strings are replaced with scrollable `<pre>` widgets via `Decoration.replace({ block: true })`. This uses `resolveInner` per-line (same overlay pattern as `blockquote.ts` and `table.ts`) to find `FencedCode` nodes.
+
+**Critical fold interaction**: Any `Decoration.replace({ block: true })` that overlaps with a folded range will visually leak outside the fold — the block widget renders even though the fold should hide those lines. The fenced code field MUST check `isInsideFold(state, pos)` before creating decorations, and MUST rebuild on `foldEffect`/`unfoldEffect` (same pattern as `dslWidgetField` in `decorations.ts`). Without this, fenced code blocks inside folded forms (e.g., `(preview ...)`) render below the fold marker.
+
+**Critical mobile layout**: Block widgets with `white-space: pre` content inflate `.cm-content`'s intrinsic min-width in the flex layout, causing the entire CM scroller to scroll horizontally. Widget wrappers need `overflow: hidden`, and `.cm-content` needs `minWidth: "0 !important"` (set in `theme.ts`) so flexbox can shrink it below its content's min-content size. Without this, individual widget scrollbars can't work because the scroller scrolls first.
+
 ### String node structure
 
 Grammar: `String[isolate] { '"' StringContent? '"' }`. The `[isolate]` wrap enables `parseMixed` to target `StringContent` for nested markdown. The `"` quotes are anonymous tokens — they appear as child nodes but don't have names, which breaks CM6 utilities that rely on `firstChild`/`lastChild` being meaningful (like `foldInside` and `bracketedAligned`). The closing `"` is at `node.to - 1` (not `node.to`).
-
-## Roadmap
-
-- separate tables and ascii diagrams from other markdown, and make them scrollable, to better support mobile
-- simplify auto-indentation in markdown multiline, when hitting Enter

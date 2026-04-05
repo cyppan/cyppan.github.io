@@ -99,13 +99,15 @@ export function tableDecoration(): Extension {
         display: "block",
         padding: "4px 0",
         userSelect: "none",
+        overflow: "hidden",
       },
       ".cm-table-widget table": {
         borderCollapse: "collapse",
         fontFamily: serif,
         fontSize: "15px",
         lineHeight: "1.4",
-        width: "100%",
+        display: "block",
+        overflowX: "auto",
       },
       ".cm-table-widget th, .cm-table-widget td": {
         border: "1px solid #d0d7de",

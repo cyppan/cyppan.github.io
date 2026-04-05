@@ -56,6 +56,7 @@ export const notesTheme = EditorView.theme({
   ".cm-content": {
     fontFamily: mono,
     padding: "12px 0",
+    minWidth: "0 !important",
   },
   ".cm-gutters": {
     background: "transparent",
