@@ -15,6 +15,8 @@
        - Née de la souffrance personnelle de Steven Hayes — le créateur a d'abord échoué à se soigner avec ses propres méthodes (TCC classique)
        - Transdiagnostique par conception : de la douleur chronique au sport de haut niveau, de l'entreprise à l'éducation"))
 
+  (media {:src "/media/act-illustration.png" :alt "Illustration ACT from 'Doing what matters in time of stress' by the WHO cf https://www.who.int/publications-detail-redirect/9789240003927'"})
+
   (toc
     (origines
       (recit "### L'histoire personnelle de Steven Hayes")
