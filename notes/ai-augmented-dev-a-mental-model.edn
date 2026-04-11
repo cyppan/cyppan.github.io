@@ -29,31 +29,31 @@
        - Bainbridge's irony applies directly: delegating execution erodes the skills you need to evaluate the output — the more it works, the less prepared you are when it doesn't"))
 
   (toc
-    (h2 "## The Two Axis Mental Model"
-      (h3 "### Judgment delegation")
-      (h3 "### Loop tightness")
-      (h3 "### Why only two dimensions"))
-    (h2 "## Contextual factors")
-    (h2 "## Patterns in the wild")
-    (h2 "## The adjustment cycle")
-    (h2 "## The skill preservation problem")
-    (h2 "## Stress tests"
-      (h3 "### The junior developer")
-      (h3 "### The high-velocity organization"))
-    (h2 "## References")
-    (h2 "## Open Questions"))
+    (modele "## The Two Axis Mental Model"
+      (axe "### Judgment delegation")
+      (axe "### Loop tightness")
+      (justification "### Why only two dimensions"))
+    (contexte "## Contextual factors")
+    (patterns "## Patterns in the wild")
+    (cycle "## The adjustment cycle")
+    (preservation "## The skill preservation problem")
+    (stress-tests "## Stress tests"
+      (scenario "### The junior developer")
+      (scenario "### The high-velocity organization"))
+    (references "## References")
+    (questions "## Open Questions"))
   
-  (h2 "## The Two Axis Mental Model"
+  (modele "## The Two Axis Mental Model"
     "Any collaboration between a human and an AI agent can be characterized by two observable properties, regardless of the tools, the model, or the organization.
 
     ```
-           Judgment delegation                           
+           Judgment delegation
 
-      human ◄──────────────► delegated             
-      human frames,           agent interprets,    
-      evaluates,              ships                
-      chooses                 autonomously         
-  
+      human ◄──────────────► delegated
+      human frames,           agent interprets,
+      evaluates,              ships
+      chooses                 autonomously
+
              Loop tightness
 
       tight ◄──────────────► loose
@@ -62,14 +62,14 @@
       constant feedback   review at the end
     ```"
 
-    (h3 "### Judgment delegation"
+    (axe "### Judgment delegation"
       "Who makes the call, and when.
 
       At one end, the human frames the problem, chooses the approach, and evaluates every output. At the other end, the agent interprets requirements, selects strategies, and ships without human validation. In between, judgment is shared — the agent makes intermediate decisions, the human validates at defined gates.
 
       This is not binary. Different types of judgment can be delegated independently: architectural decisions, implementation details, testing strategy, deployment timing, product direction, prioritization. You might retain judgment on API design while fully delegating test generation. You might delegate all implementation details but retain product-level judgment on what to build next. You might feed market research and client feedback to an agent and delegate the judgment of what features to propose entirely.")
 
-    (h3 "### Loop tightness"
+    (axe "### Loop tightness"
       "How frequently information flows between the human and the agent — in both directions.
 
       A tight loop means frequent exchanges. A loose loop means the agent runs largely uninterrupted.
@@ -85,7 +85,7 @@
 
       Loop tightness is not the inverse of judgment delegation. You can fully delegate judgment while maintaining tight loops (feeding the agent domain context without second-guessing its decisions). You can retain full judgment with loose loops (framing everything upfront, reviewing only the final output).")
 
-    (h3 "### Why only two dimensions"
+    (justification "### Why only two dimensions"
       "The test: if you observe someone working with an AI agent and you know nothing about the task, you can assess these two properties. You cannot assess the scope, the risk, or the stakes without additional context.
 
       The two axes are not equally observable, though. Loop tightness is directly and unambiguously visible 
@@ -97,7 +97,7 @@
 
       Scope, risk, reversibility, and other candidate dimensions all influence *why* you end up at a given position on the two axes. Including one in the model opens the door to all the others, and the model becomes a checklist rather than a lens. These factors belong in the contextual layer."))
 
-  (h2 "## Contextual factors"
+  (contexte "## Contextual factors"
     "Multiple factors influence where a collaboration sits on the two dimensions. These are not part of the model — they are inputs to it.
     ```
     ┌──────────────┐   ┌─────────────────┐   ┌──────────────────┐
@@ -136,7 +136,7 @@
     - Domain expertise concentration — if critical knowledge lives in one person's head, you cannot loosen the loop without capturing that knowledge somewhere
     ")
 
-  (h2 "## Patterns in the wild"
+  (patterns "## Patterns in the wild"
     "```
                         Judgment delegation
           Human ◄──────────────────────────────► Delegated
@@ -167,7 +167,7 @@
     | Approval-gated agent | Delegated | Tight (mechanical) | Agent has full decision authority but every action requires explicit human approval before execution. Loop is tight but interactions are approvals, not judgment. |
     ")
 
-  (h2 "## The adjustment cycle"
+  (cycle "## The adjustment cycle"
     "You do not pick a pattern once. Your position on the two axes shifts over time as you invest in contextual factors, observe results, and adjust.
 
     ```
@@ -197,7 +197,7 @@
 
     Neither direction is inherently better. The cycle is about finding and maintaining an appropriate position given your current context — which itself changes as tasks, tools, people, and stakes evolve.")
 
-  (h2 "## The skill preservation problem"
+  (preservation "## The skill preservation problem"
     "There is a strong case for *not* always pushing toward more delegation and looser loops — even when you could.
 
     ```
@@ -229,8 +229,8 @@
     This is a legitimate reason to intentionally maintain tighter loops and retain more judgment than strictly necessary — not out of distrust for the model, but to preserve your own capabilities.
     ")
 
-  (h2 "## Stress tests"
-    (h3 "### The junior developer"
+  (stress-tests "## Stress tests"
+    (scenario "### The junior developer"
       "The skill preservation argument assumes you *have* skills to preserve. A junior developer starting their career with AI agents faces a different problem: **skills that were never built in the first place**.
 
       A junior using an agent as a code companion with tight loops and human judgment — that works well. The agent is a patient, always-available mentor. But the quality of the loop depends on the human's ability to engage meaningfully with the output. Reviewing code you could not have written yourself is a fundamentally different exercise from reviewing code you understand. You can "approve" without understanding. You can develop a false sense of competence built on pattern-matching rather than comprehension.
@@ -239,7 +239,7 @@
 
       This is an assumed limitation. The model describes *where you are* on the two axes, not *what that position does to you*. The effect depends on who you are going in. A junior and a senior at the same "code companion" pattern live radically different experiences, but the pattern is the same. It is the responsibility of the individual, a mentor, or a lead to decide whether a given pattern serves or hinders development at a given skill level.")
   
-    (h3 "### The high-velocity organization"
+    (scenario "### The high-velocity organization"
       "Consider: a well-funded startup, 6 months of runway to show traction, staffing treated as an adjustment variable. Their reasoning is straightforward — 'employability is not our problem, skill preservation is a luxury, we want maximum delegation and the loosest loops we can get away with, as fast as possible.'
 
       In the short term, they may be right. Optimizing for skill preservation when you need to ship a product before your money runs out is a bad trade-off. The model should not moralize about this.
@@ -252,7 +252,7 @@
 
       The model accommodates this perspective — nothing prevents a high-velocity organization from operating at delegated judgment and loose loops. But it makes the trade-offs visible rather than implicit, which is precisely what high-stakes decisions need."))
 
-  (h2 "## References"
+  (references "## References"
     "- **Bainbridge (1983)** — 'Ironies of Automation.' Foundational paper (4700+ citations) on the paradoxes of automation: removing operators from direct control degrades the skills they need when automation fails. The more successful the automation, the greater the training investment needed.
     - **Sheridan and Verplank (1978)** — 10 levels of automation in human-machine systems. Established that automation is a spectrum, not binary.
     - **Parasuraman, Sheridan and Wickens (2000)** — Decomposed automation into four functions (information acquisition, information analysis, decision/action selection, action implementation). Shows judgment can be partially delegated across functions.
@@ -261,7 +261,7 @@
     - **Knight First Amendment Institute (2025)** — 'Levels of Autonomy for AI Agents.' Five user-centric levels (operator to observer). Argues autonomy is a design decision independent of capability.
     - **SASE (Structured Agentic Software Engineering)** — Distinguishes agency (capacity to act, execute) from autonomy (capacity to self-direct, set goals). Agency is a contextual factor; autonomy maps to judgment delegation.")
 
-  (h2 "## Open Questions"
+  (questions "## Open Questions"
     "1. **The judgment unbundling problem.** Different types of judgment (architectural, implementation, testing, deployment, product direction) can be delegated independently. When feeding external input like market research to generate a new product, or client feedback to shape features, you are delegating judgment at a level above code. Does the model need to account for this explicitly, or is it sufficient to note that 'judgment delegation' is itself multi-dimensional?
 
     2. **Measurement.** Can these dimensions be quantified, or are they inherently qualitative? Indicative levels (like SAE L0-L5) might be useful in certain contexts like skill development and maturity assessment, but risk implying linearity and that more delegation is always better.

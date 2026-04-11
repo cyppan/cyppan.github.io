@@ -24,15 +24,13 @@ function buildTocEntry(
   indent: string,
 ): string | null {
   const args = getArguments(node);
-  if (args.length <= 1) return null;
-  const firstArg = args[0];
-  if (!firstArg || firstArg.name !== "String") return null;
-
   const symbols = node.getChildren("Symbol");
   const verb = symbols[0];
   if (!verb) return null;
   const verbText = nodeText(source, verb);
-  const firstArgText = nodeText(source, firstArg);
+
+  const firstArg = args[0];
+  const hasStringTitle = firstArg?.name === "String";
 
   const childEntries: string[] = [];
   for (const arg of args) {
@@ -42,10 +40,24 @@ function buildTocEntry(
     }
   }
 
-  if (childEntries.length === 0) {
-    return `${indent}(${verbText} ${firstArgText})`;
+  if (hasStringTitle) {
+    if (args.length <= 1 && childEntries.length === 0) return null;
+    let firstArgText = nodeText(source, firstArg);
+    // Truncate multiline strings to first line, and cap length for the TOC
+    const nlIdx = firstArgText.indexOf("\n");
+    if (nlIdx !== -1) firstArgText = `${firstArgText.slice(0, nlIdx)}"`;
+    const maxLen = 80;
+    if (firstArgText.length > maxLen)
+      firstArgText = `${firstArgText.slice(0, maxLen - 4)}..."`;
+    if (childEntries.length === 0) {
+      return `${indent}(${verbText} ${firstArgText})`;
+    }
+    return `${indent}(${verbText} ${firstArgText}\n${childEntries.join("\n")})`;
   }
-  return `${indent}(${verbText} ${firstArgText}\n${childEntries.join("\n")})`;
+
+  // Container form without a string title (e.g. (origines (recit "### ..." ...)))
+  if (childEntries.length === 0) return null;
+  return `${indent}(${verbText}\n${childEntries.join("\n")})`;
 }
 
 export interface TocResult {
