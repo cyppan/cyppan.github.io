@@ -29,16 +29,15 @@ async function main() {
     notes.push({ source, metadata: result.note.metadata });
   }
 
-  // 3. Filter public notes
-  const publicNotes = notes.filter((n) => n.metadata.public);
-  const publicIndex = publicNotes.sort((a, b) =>
+  // 3. Sort notes (all notes in NOTES_DIR are public by folder convention)
+  const publicIndex = notes.sort((a, b) =>
     b.metadata.created.localeCompare(a.metadata.created),
   );
 
-  console.log(`Found ${notes.length} notes, ${publicNotes.length} public`);
+  console.log(`Found ${notes.length} public notes`);
 
   // 4. Generate per-note HTML pages
-  for (const note of publicNotes) {
+  for (const note of publicIndex) {
     const { slug } = note.metadata;
     const title = note.metadata.title;
     const description = note.metadata.preview ?? "";

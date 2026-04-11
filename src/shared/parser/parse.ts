@@ -5,7 +5,6 @@ import { nodeText, unescapeString } from "./util.js";
 export interface NoteMetadata {
   slug: string;
   tags: string[];
-  public: boolean;
   created: string;
   aiContribution: number;
   title: string;
@@ -36,14 +35,12 @@ function parseMetadataMap(
 ): {
   slug: string | null;
   tags: string[];
-  public: boolean;
   created: string;
   aiContribution: number | null;
 } {
   const result = {
     slug: null as string | null,
     tags: [] as string[],
-    public: false,
     created: "",
     aiContribution: null as number | null,
   };
@@ -62,12 +59,6 @@ function parseMetadataMap(
           for (const tagNode of value.getChildren("Keyword")) {
             result.tags.push(nodeText(source, tagNode).slice(1));
           }
-        }
-        break;
-      }
-      case ":public": {
-        if (value.name === "Boolean") {
-          result.public = nodeText(source, value) === "true";
         }
         break;
       }
@@ -164,7 +155,6 @@ function extractFromTree(tree: Tree, source: string): ParseResult {
   let meta = {
     slug: null as string | null,
     tags: [] as string[],
-    public: false,
     created: "",
     aiContribution: null as number | null,
   };
@@ -242,7 +232,6 @@ function extractFromTree(tree: Tree, source: string): ParseResult {
   const metadata: NoteMetadata = {
     slug,
     tags: meta.tags,
-    public: meta.public,
     created: meta.created,
     aiContribution,
     title,

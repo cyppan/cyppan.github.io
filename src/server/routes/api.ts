@@ -4,6 +4,7 @@ import {
   deleteNote,
   getIndex,
   hasNote,
+  isNotePublic,
   isValidSlug,
   NoteNotFoundError,
   NoteParseError,
@@ -78,10 +79,9 @@ if (!isProd) {
 
     const today = new Date().toISOString().slice(0, 10);
     const heading = title || slug;
-    const publicLine = isPublic ? "\n   :public true" : "";
     const source = `(defnote "${heading}"
   {:slug '${slug}
-   :tags []${publicLine}
+   :tags []
    :ai-contribution :level-0
    :created "${today}"}
 
@@ -89,7 +89,7 @@ if (!isProd) {
 `;
 
     try {
-      const metadata = await writeNote(notesDir, slug, source);
+      const metadata = await writeNote(notesDir, slug, source, isPublic);
       return c.json({ slug, metadata }, 201);
     } catch (err) {
       if (err instanceof NoteParseError) {
@@ -118,7 +118,12 @@ if (!isProd) {
     }
 
     try {
-      const metadata = await writeNote(notesDir, slug, source);
+      const metadata = await writeNote(
+        notesDir,
+        slug,
+        source,
+        isNotePublic(slug),
+      );
       return c.json({ metadata });
     } catch (err) {
       if (err instanceof NoteParseError) {

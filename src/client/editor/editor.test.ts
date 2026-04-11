@@ -165,10 +165,10 @@ describe("indentation: nested structures", () => {
     const state = makeState(`(defnote test
   {:tags [:a
           :b]
-   :public true})`);
+   :created "2026-03-20"})`);
     // `:b` should align with `:a` — `[` at column 9, `:a` at column 10
     expect(indentAt(state, 3)).toBe(10);
-    // `:public` should align with `:tags` — `{` at column 2, `:tags` at column 3
+    // `:created` should align with `:tags` — `{` at column 2, `:tags` at column 3
     expect(indentAt(state, 4)).toBe(3);
   });
 });
@@ -179,7 +179,6 @@ describe("indentation: inside inline string", () => {
     const state = makeState(`;; This is a comment
 (defnote kitchen-sink
   {:tags [:test :edge-cases]
-   :public false
    :created "2026-03-20"}
 
   "# Kitchen Sink
@@ -464,7 +463,7 @@ function tocState(doc: string) {
 describe("generateTocContent", () => {
   test("generates TOC from h2/h3 structure", () => {
     const doc = `(defnote "# Test"
-  {:slug 'test :public true :created "2026-01-01"}
+  {:slug 'test :created "2026-01-01"}
 
   (toc)
 
@@ -485,7 +484,7 @@ describe("generateTocContent", () => {
 
   test("excludes leaf forms (single argument)", () => {
     const doc = `(defnote "# Test"
-  {:slug 'test :public true :created "2026-01-01"}
+  {:slug 'test :created "2026-01-01"}
 
   (toc)
 
@@ -502,7 +501,7 @@ describe("generateTocContent", () => {
 
   test("excludes forms whose first arg is not a string", () => {
     const doc = `(defnote "# Test"
-  {:slug 'test :public true :created "2026-01-01"}
+  {:slug 'test :created "2026-01-01"}
 
   (toc)
 
@@ -519,7 +518,7 @@ describe("generateTocContent", () => {
 
   test("replaces existing toc content", () => {
     const doc = `(defnote "# Test"
-  {:slug 'test :public true :created "2026-01-01"}
+  {:slug 'test :created "2026-01-01"}
 
   (toc
     (old "## Stale Entry"))
@@ -536,7 +535,7 @@ describe("generateTocContent", () => {
 
   test("returns null when no toc form exists", () => {
     const doc = `(defnote "# Test"
-  {:slug 'test :public true :created "2026-01-01"}
+  {:slug 'test :created "2026-01-01"}
 
   (h2 "## Section"
     "content"))`;
@@ -547,7 +546,7 @@ describe("generateTocContent", () => {
 
   test("works with arbitrary form names", () => {
     const doc = `(defnote "# Test"
-  {:slug 'test :public true :created "2026-01-01"}
+  {:slug 'test :created "2026-01-01"}
 
   (toc)
 
@@ -562,7 +561,7 @@ describe("generateTocContent", () => {
 
   test("produces correct indentation", () => {
     const doc = `(defnote "# Test"
-  {:slug 'test :public true :created "2026-01-01"}
+  {:slug 'test :created "2026-01-01"}
 
   (toc)
 

@@ -18,7 +18,6 @@ import {
 const VALID_NOTE = `(defnote "Test Note"
   {:slug 'test-note
    :tags [:test]
-   :public true
    :ai-contribution :level-2
    :created "2026-03-20"}
 
@@ -28,7 +27,6 @@ const VALID_NOTE = `(defnote "Test Note"
 const VALID_NOTE_2 = `(defnote "Second Note"
   {:slug 'second-note
    :tags [:demo]
-   :public true
    :ai-contribution :level-0
    :created "2026-03-19"})
 `;
@@ -112,8 +110,8 @@ describe("buildIndex", () => {
     expect(idx.get("test-note")?.metadata.slug).toBe("test-note");
     expect(idx.get("test-note")?.metadata.title).toBe("Test Note");
     expect(idx.get("test-note")?.metadata.tags).toEqual(["test"]);
-    expect(idx.get("test-note")?.metadata.public).toBe(true);
-    expect(idx.get("second-note")?.metadata.public).toBe(true);
+    expect(idx.get("test-note")?.isPublic).toBe(true);
+    expect(idx.get("second-note")?.isPublic).toBe(true);
   });
 
   test("skips malformed files", async () => {
@@ -159,7 +157,7 @@ describe("readNote", () => {
 
 describe("writeNote", () => {
   test("writes valid source and returns metadata", async () => {
-    const metadata = await writeNote(tmpDir, "test-note", VALID_NOTE);
+    const metadata = await writeNote(tmpDir, "test-note", VALID_NOTE, true);
 
     expect(metadata.slug).toBe("test-note");
     expect(metadata.title).toBe("Test Note");
@@ -170,7 +168,7 @@ describe("writeNote", () => {
   });
 
   test("rejects invalid source with NoteParseError", async () => {
-    expect(writeNote(tmpDir, "bad", MALFORMED_NOTE)).rejects.toThrow(
+    expect(writeNote(tmpDir, "bad", MALFORMED_NOTE, true)).rejects.toThrow(
       NoteParseError,
     );
   });
@@ -179,7 +177,7 @@ describe("writeNote", () => {
     await Bun.write(path.join(tmpDir, "test-note.edn"), VALID_NOTE);
 
     const updated = VALID_NOTE.replace("Some content.", "Updated content.");
-    await writeNote(tmpDir, "test-note", updated);
+    await writeNote(tmpDir, "test-note", updated, true);
 
     const content = await Bun.file(path.join(tmpDir, "test-note.edn")).text();
     expect(content).toBe(updated);
@@ -223,7 +221,7 @@ describe("private notes", () => {
   test("writeNote puts private notes in private dir", async () => {
     await initIndex(tmpDir);
 
-    await writeNote(tmpDir, "private-note", PRIVATE_NOTE);
+    await writeNote(tmpDir, "private-note", PRIVATE_NOTE, false);
 
     const privateFile = Bun.file(
       path.join(tmpDir, "private", "private-note.edn"),
@@ -237,7 +235,7 @@ describe("private notes", () => {
   test("writeNote puts public notes in root dir", async () => {
     await initIndex(tmpDir);
 
-    await writeNote(tmpDir, "test-note", VALID_NOTE);
+    await writeNote(tmpDir, "test-note", VALID_NOTE, true);
 
     const rootFile = Bun.file(path.join(tmpDir, "test-note.edn"));
     expect(await rootFile.exists()).toBe(true);
@@ -246,19 +244,15 @@ describe("private notes", () => {
     expect(await privateFile.exists()).toBe(false);
   });
 
-  test("writeNote moves note when public flag changes", async () => {
+  test("writeNote moves note when isPublic changes", async () => {
     await initIndex(tmpDir);
 
-    await writeNote(tmpDir, "private-note", PRIVATE_NOTE);
+    await writeNote(tmpDir, "private-note", PRIVATE_NOTE, false);
     expect(
       await Bun.file(path.join(tmpDir, "private", "private-note.edn")).exists(),
     ).toBe(true);
 
-    const madePublic = PRIVATE_NOTE.replace(
-      ":created",
-      ":public true\n   :created",
-    );
-    await writeNote(tmpDir, "private-note", madePublic);
+    await writeNote(tmpDir, "private-note", PRIVATE_NOTE, true);
 
     expect(await Bun.file(path.join(tmpDir, "private-note.edn")).exists()).toBe(
       true,
@@ -271,7 +265,7 @@ describe("private notes", () => {
   test("readNote finds private notes", async () => {
     await initIndex(tmpDir);
 
-    await writeNote(tmpDir, "private-note", PRIVATE_NOTE);
+    await writeNote(tmpDir, "private-note", PRIVATE_NOTE, false);
     const result = await readNote(tmpDir, "private-note");
 
     expect(result.source).toBe(PRIVATE_NOTE);
@@ -281,7 +275,7 @@ describe("private notes", () => {
   test("deleteNote removes private notes", async () => {
     await initIndex(tmpDir);
 
-    await writeNote(tmpDir, "private-note", PRIVATE_NOTE);
+    await writeNote(tmpDir, "private-note", PRIVATE_NOTE, false);
     await deleteNote(tmpDir, "private-note");
 
     expect(
@@ -293,8 +287,8 @@ describe("private notes", () => {
   test("hasNote works for both public and private", async () => {
     await initIndex(tmpDir);
 
-    await writeNote(tmpDir, "test-note", VALID_NOTE);
-    await writeNote(tmpDir, "private-note", PRIVATE_NOTE);
+    await writeNote(tmpDir, "test-note", VALID_NOTE, true);
+    await writeNote(tmpDir, "private-note", PRIVATE_NOTE, false);
 
     expect(hasNote("test-note")).toBe(true);
     expect(hasNote("private-note")).toBe(true);

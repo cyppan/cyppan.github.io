@@ -54,14 +54,17 @@ function privateDirPath(notesDir: string): string {
 export interface NoteEntry {
   metadata: NoteMetadata;
   source: string;
+  isPublic: boolean;
 }
 
 async function scanDir(
   dir: string,
+  notesDir: string,
   result: Map<string, NoteEntry>,
 ): Promise<void> {
   if (!existsSync(dir)) return;
 
+  const isPublic = dir === notesDir;
   const glob = new Bun.Glob("*.edn");
   for await (const filename of glob.scan({ cwd: dir })) {
     const filePath = path.join(dir, filename);
@@ -69,7 +72,7 @@ async function scanDir(
       const source = await Bun.file(filePath).text();
       const metadata = extractMetadata(source);
       if (metadata) {
-        result.set(metadata.slug, { metadata, source });
+        result.set(metadata.slug, { metadata, source, isPublic });
         noteDirs.set(metadata.slug, dir);
       } else {
         console.warn(`Skipping malformed note: ${filename}`);
@@ -86,8 +89,8 @@ export async function buildIndex(
   const result = new Map<string, NoteEntry>();
   noteDirs.clear();
 
-  await scanDir(notesDir, result);
-  await scanDir(privateDirPath(notesDir), result);
+  await scanDir(notesDir, notesDir, result);
+  await scanDir(privateDirPath(notesDir), notesDir, result);
 
   return result;
 }
@@ -133,6 +136,7 @@ export async function writeNote(
   notesDir: string,
   slug: string,
   source: string,
+  isPublic: boolean,
 ): Promise<NoteMetadata> {
   const result = parseNote(source);
   if (!result.ok) {
@@ -140,7 +144,7 @@ export async function writeNote(
   }
 
   const metadata = result.note.metadata;
-  const targetDir = metadata.public ? notesDir : privateDirPath(notesDir);
+  const targetDir = isPublic ? notesDir : privateDirPath(notesDir);
   const currentDir = noteDirs.get(slug);
 
   await Bun.write(notePath(targetDir, slug), source);
@@ -152,7 +156,7 @@ export async function writeNote(
     }
   }
 
-  index.set(slug, { metadata, source });
+  index.set(slug, { metadata, source, isPublic });
   noteDirs.set(slug, targetDir);
 
   return metadata;
@@ -192,7 +196,7 @@ export function hasNote(slug: string): boolean {
   return index.has(slug);
 }
 
-function createDirWatcher(dir: string): FSWatcher {
+function createDirWatcher(dir: string, isPublic: boolean): FSWatcher {
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   return watch(dir, (_event, filename) => {
@@ -209,7 +213,7 @@ function createDirWatcher(dir: string): FSWatcher {
           const source = await file.text();
           const metadata = extractMetadata(source);
           if (metadata) {
-            index.set(slug, { metadata, source });
+            index.set(slug, { metadata, source, isPublic });
             noteDirs.set(slug, dir);
           }
         } else {
@@ -224,12 +228,16 @@ function createDirWatcher(dir: string): FSWatcher {
   });
 }
 
+export function isNotePublic(slug: string): boolean {
+  return index.get(slug)?.isPublic ?? false;
+}
+
 export function startWatcher(notesDir: string): void {
   stopWatcher();
-  watcher = createDirWatcher(notesDir);
+  watcher = createDirWatcher(notesDir, true);
   const privDir = privateDirPath(notesDir);
   try {
-    privateWatcher = createDirWatcher(privDir);
+    privateWatcher = createDirWatcher(privDir, false);
   } catch {
     // private dir may not exist
   }

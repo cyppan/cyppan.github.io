@@ -1,7 +1,6 @@
 (defnote "# L'ACT : guide complet pour comprendre et pratiquer la thérapie d'acceptation et d'engagement"
   {:slug 'act-guide-complet
    :tags [:deep-research :psychology]
-   :public true
    :ai-contribution :level-9
    :created "2026-04-11"}
 

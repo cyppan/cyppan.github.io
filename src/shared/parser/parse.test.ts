@@ -19,7 +19,6 @@ describe("parseNote", () => {
     expect(result.note.metadata.tags).toEqual(["test"]);
     expect(result.note.metadata.created).toBe("2026-03-20");
     expect(result.note.metadata.title).toBe("Hello World");
-    expect(result.note.metadata.public).toBe(false);
     expect(result.note.metadata.aiContribution).toBe(2);
   });
 
@@ -27,7 +26,6 @@ describe("parseNote", () => {
     const source = `(defnote "My Note Title"
   {:slug 'my-note
    :tags [:architecture :personal-tools]
-   :public true
    :ai-contribution :level-3
    :created "2026-03-20"}
 
@@ -42,7 +40,6 @@ describe("parseNote", () => {
       "architecture",
       "personal-tools",
     ]);
-    expect(result.note.metadata.public).toBe(true);
     expect(result.note.metadata.created).toBe("2026-03-20");
     expect(result.note.metadata.title).toBe("My Note Title");
     expect(result.note.metadata.aiContribution).toBe(3);
@@ -137,14 +134,13 @@ describe("extractMetadata", () => {
   test("returns metadata on valid input", () => {
     const source = `(defnote "Test Note"
   {:slug 'test-note
-   :tags [:a :b] :public true :ai-contribution :level-4 :created "2026-03-20"})`;
+   :tags [:a :b] :ai-contribution :level-4 :created "2026-03-20"})`;
 
     const meta = extractMetadata(source);
     expect(meta).not.toBeNull();
     expect(meta?.slug).toBe("test-note");
     expect(meta?.title).toBe("Test Note");
     expect(meta?.tags).toEqual(["a", "b"]);
-    expect(meta?.public).toBe(true);
     expect(meta?.aiContribution).toBe(4);
   });
 
@@ -162,6 +158,5 @@ describe("sample files", () => {
     const meta = extractMetadata(source);
     expect(meta).not.toBeNull();
     expect(meta?.slug).toBe("ai-augmented-dev-a-mental-model");
-    expect(meta?.public).toBe(true);
   });
 });

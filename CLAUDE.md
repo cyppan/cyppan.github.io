@@ -42,7 +42,6 @@ A note is a `defnote` form in an `.edn` file:
 (defnote "# Title"
   {:slug 'my-note
    :tags [:tag-one :tag-two]
-   :public true
    :created "2026-04-11"}
 
   (preview
@@ -67,7 +66,7 @@ A note is a `defnote` form in an `.edn` file:
 - **Container forms** group related items: `(comparaisons "## Title" (comparaison "### ..." ...) (comparaison "### ..." ...))`. They can have an optional intro string before their children.
 - **`(preview ... (insights ...))` pattern**: every note starts with a preview (summary paragraph) and insights (key bullet points).
 - **`(toc)`**: auto-generated from sibling forms. Supports both forms with a String first arg (leaf entries) and container forms without one (grouping nodes with children). Strings are truncated to first line and capped at 80 chars.
-- **Metadata**: `:slug` (required, kebab-case symbol), `:tags` (vector of keywords), `:public` (boolean, defaults to false), `:created` (date string).
+- **Metadata**: `:slug` (required, kebab-case symbol), `:tags` (vector of keywords), `:created` (date string).
 - **File location**: public notes in `notes/`, private notes in `notes/private/`.
 
 ## Design Philosophy
@@ -91,7 +90,7 @@ Use `bun run check` to check for type errors and syntax errors, it's fast you ca
 
 ## Private Notes & Encryption
 
-Private notes (`:public false` or no `:public` key) live in `notes/private/`. Public notes live in `notes/`. The server scans both directories. When a note's `:public` flag changes, `writeNote` moves the file between directories automatically.
+Public/private status is determined by folder location: public notes live in `notes/`, private notes in `notes/private/`. The server scans both directories.
 
 Encryption is a git-layer concern, not a server concern. Decrypted `.edn` files in `notes/private/` are gitignored. Encrypted `.edn.age` files are tracked.
 
