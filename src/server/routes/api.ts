@@ -82,6 +82,7 @@ if (!isProd) {
     const source = `(defnote "${heading}"
   {:slug '${slug}
    :tags []${publicLine}
+   :ai-contribution :level-0
    :created "${today}"}
 
   "# ${heading}")

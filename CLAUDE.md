@@ -34,15 +34,51 @@ test("hello world", () => {
 
 - Always validate approach with the user before implementing, especially for UI/design decisions. Explain the proposed approach, ask for confirmation, then code.
 
+## Note Structure
+
+A note is a `defnote` form in an `.edn` file:
+
+```clojure
+(defnote "# Title"
+  {:slug 'my-note
+   :tags [:tag-one :tag-two]
+   :public true
+   :created "2026-04-11"}
+
+  (preview
+    "Summary paragraph"
+    (insights
+      "- Key takeaway 1
+       - Key takeaway 2"))
+
+  (toc) ;; auto-generated from sibling forms
+
+  (section-name "## Section Title"
+    (item-name "### Item Title"
+      "Content string with **markdown**...")
+    (item-name "### Another Item"
+      "More content..."))
+
+  (another-section "## Another Section"
+    "Content directly in the section..."))
+```
+
+- **Form names are semantic and arbitrary.** There are no privileged heading forms — use domain-specific names that describe *what* the content is: `(origines ...)`, `(concept ...)`, `(metaphore ...)`, `(cas ...)`, `(scenario ...)`, etc. The `##`/`###` markdown heading inside the first string argument controls visual hierarchy, not the form name.
+- **Container forms** group related items: `(comparaisons "## Title" (comparaison "### ..." ...) (comparaison "### ..." ...))`. They can have an optional intro string before their children.
+- **`(preview ... (insights ...))` pattern**: every note starts with a preview (summary paragraph) and insights (key bullet points).
+- **`(toc)`**: auto-generated from sibling forms. Supports both forms with a String first arg (leaf entries) and container forms without one (grouping nodes with children). Strings are truncated to first line and capped at 80 chars.
+- **Metadata**: `:slug` (required, kebab-case symbol), `:tags` (vector of keywords), `:public` (boolean, defaults to false), `:created` (date string).
+- **File location**: public notes in `notes/`, private notes in `notes/private/`.
+
 ## Design Philosophy
 
 - The EDN DSL is self-sufficient. The DSL text IS the interface — it must always remain visible and editable.
 - **Never use `Decoration.replace` on DSL forms.** Replacing the DSL hides it from the user and makes it uneditable. This is forbidden.
 - Widgets **augment** the DSL, they don't substitute it. Use `Decoration.widget` (positioned before/after the form) to render visual complements alongside the raw EDN.
-  - `(media ...)`: the form stays visible and editable. An image preview is rendered below/after it as a visual aid.
-  - `(ref ...)`: the form stays visible and editable. In **read-only mode**, the ref text is rendered as a clickable link. In **edit mode**, it is plain text (no link behavior).
-  - `(code ...)`: the DSL wrapping form always stays visible. In **edit mode**, the string content is a plain multiline editor (markdown nested parsing disabled for code strings). In **read-only mode**, a `CodeWidget` is inserted after the form showing the code syntax-highlighted in the target language (just `<pre><code>`, no labels or wrappers).
-  - `(toc)`: auto-generated table of contents. The form content is populated automatically from the document structure by a `ViewPlugin` in `src/client/editor/toc.ts`. Markdown parsing is disabled inside the toc form (strings stay plain monospace). Clickable `↗` scroll links (`TocLinkWidget`) appear next to each entry in both edit and read-only modes.
+  - `(media ...)`: image preview rendered below/after the form.
+  - `(ref ...)`: clickable link in **read-only mode** only.
+  - `(code ...)`: syntax-highlighted `<pre><code>` in **read-only mode**; plain multiline editor in edit mode (markdown nesting disabled).
+  - `(toc)`: auto-populated by `src/client/editor/toc.ts`. Markdown parsing disabled inside. `TocLinkWidget` (`↗`) scroll links in both modes.
 - When adding new DSL form support: (1) the form always renders as raw EDN with syntax highlighting, (2) only add a companion widget when the rendered output adds something the text alone can't convey (e.g., an image), (3) never wrap in styled containers with labels or colored backgrounds.
 
 ## TypeScript Rules
@@ -133,14 +169,19 @@ The `.cm-prose` serif mark is applied per-line to `StringContent`, **excluding**
 
 ### DSL form widgets (`src/client/editor/decorations.ts`)
 
-DSL forms are **never replaced** — the EDN text always stays visible and editable. Widgets are companion decorations placed alongside the form via `Decoration.widget` (not `Decoration.replace`). The tree is scanned with `tree.iterate()` (outer EDN nodes only — doesn't enter overlay markdown), matching `List` nodes whose first `Symbol` child is a known form name.
-
-- `(media ...)`: a `MediaWidget` (image preview) is inserted after the form as a block widget.
-- `(ref ...)`: in read-only mode, a `RefWidget` (clickable link) is inserted after the form. In edit mode, no widget — the DSL text is sufficient.
-- `(code ...)`: in edit mode, the string content is a plain multiline editor (no markdown nesting). In read-only mode, a `CodeWidget` (syntax-highlighted `<pre><code>`) is inserted after the form. The DSL wrapping form stays visible in both modes.
-- `(toc)`: auto-generated from document structure by `src/client/editor/toc.ts`. A `ViewPlugin` scans sibling forms after `(toc)` inside `defnote`, builds a filtered tree (excludes leaves with ≤1 arg and forms whose first arg isn't a String), and rewrites the toc form content. Updates on a 200ms debounce after doc changes, also runs on initial load. Changes are `Transaction.addToHistory.of(false)` (invisible to undo). `TocLinkWidget` (clickable `↗`) decorations appear in both edit and read-only modes, matching TOC entries to content forms by slugified heading text.
+DSL forms are **never replaced** — the EDN text always stays visible and editable. Widgets are companion decorations placed alongside the form via `Decoration.widget` (not `Decoration.replace`). The tree is scanned with `tree.iterate()` (outer EDN nodes only — doesn't enter overlay markdown), matching `List` nodes whose first `Symbol` child is a known form name (`media`, `ref`, `code`).
 
 Widget classes (`src/client/editor/widgets/`): `MediaWidget` (image preview), `RefWidget` (clickable link for read-only mode), `CodeWidget` (syntax-highlighted code for read-only mode), `TocLinkWidget` (clickable scroll link for TOC entries). Each extends `WidgetType` with `toDOM()` and `eq()`.
+
+### TOC auto-generation (`src/client/editor/toc.ts`)
+
+A `ViewPlugin` scans sibling forms after `(toc)` inside `defnote` and rewrites the toc form content. Updates on a 200ms debounce after doc changes, also runs on initial load. Changes are `Transaction.addToHistory.of(false)` (invisible to undo).
+
+`buildTocEntry` handles two cases:
+- **Forms with a String first arg** (e.g., `(concept "### RFT" ...)`): included as leaf entries. The string is truncated to first line and capped at 80 chars with `..."`.
+- **Container forms without a String first arg** (e.g., `(origines (recit ...) ...)`): included as grouping nodes using just the verb name, if they have valid child entries. Excluded otherwise.
+
+Leaf forms with ≤1 arg and no children are excluded. `TocLinkWidget` (`↗`) decorations appear in both edit and read-only modes, matching entries to content forms by slugified heading text.
 
 ### Fenced code block decoration (`src/client/editor/fenced-code.ts`)
 

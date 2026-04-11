@@ -7,6 +7,7 @@ export interface NoteMetadata {
   tags: string[];
   public: boolean;
   created: string;
+  aiContribution: number;
   title: string;
   preview: string | null;
   previewImage: string | null;
@@ -32,12 +33,19 @@ export type ParseResult =
 function parseMetadataMap(
   source: string,
   mapNode: SyntaxNode,
-): { slug: string | null; tags: string[]; public: boolean; created: string } {
+): {
+  slug: string | null;
+  tags: string[];
+  public: boolean;
+  created: string;
+  aiContribution: number | null;
+} {
   const result = {
     slug: null as string | null,
     tags: [] as string[],
     public: false,
     created: "",
+    aiContribution: null as number | null,
   };
 
   // Get all Keyword children — each keyword is a key, its next named sibling is the value
@@ -72,6 +80,18 @@ function parseMetadataMap(
       case ":created": {
         if (value.name === "String") {
           result.created = unescapeString(nodeText(source, value));
+        }
+        break;
+      }
+      case ":ai-contribution": {
+        if (value.name === "Keyword") {
+          const match = nodeText(source, value).match(/^:level-(\d+)$/);
+          if (match?.[1]) {
+            const level = parseInt(match[1], 10);
+            if (level >= 0 && level <= 10) {
+              result.aiContribution = level;
+            }
+          }
         }
         break;
       }
@@ -146,6 +166,7 @@ function extractFromTree(tree: Tree, source: string): ParseResult {
     tags: [] as string[],
     public: false,
     created: "",
+    aiContribution: null as number | null,
   };
   const mapNode = defnoteNode.getChild("Map");
   if (mapNode) {
@@ -165,6 +186,21 @@ function extractFromTree(tree: Tree, source: string): ParseResult {
     };
   }
   const slug = meta.slug;
+
+  if (meta.aiContribution == null) {
+    return {
+      ok: false,
+      errors: [
+        {
+          message:
+            "Expected :ai-contribution in metadata map (keyword :level-0 to :level-10)",
+          from: mapNode?.from ?? defnoteNode.from,
+          to: mapNode?.to ?? defnoteNode.to,
+        },
+      ],
+    };
+  }
+  const aiContribution = meta.aiContribution;
 
   // Extract (preview ...) form
   let preview: string | null = null;
@@ -208,6 +244,7 @@ function extractFromTree(tree: Tree, source: string): ParseResult {
     tags: meta.tags,
     public: meta.public,
     created: meta.created,
+    aiContribution,
     title,
     preview,
     previewImage,

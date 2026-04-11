@@ -79,6 +79,9 @@ function renderList(target: HTMLElement, notes: NoteData[]): void {
     const li = document.createElement("li");
     li.className = "note-item";
 
+    const header = document.createElement("div");
+    header.className = "note-header";
+
     const a = document.createElement("a");
     a.href = import.meta.env.DEV
       ? `/edit/${note.metadata.slug}`
@@ -87,11 +90,25 @@ function renderList(target: HTMLElement, notes: NoteData[]): void {
     title.className = "note-title";
     title.textContent = note.metadata.title;
     a.appendChild(title);
+    header.appendChild(a);
+
+    const meta = document.createElement("div");
+    meta.className = "note-meta";
     const date = document.createElement("span");
     date.className = "note-date";
     date.textContent = note.metadata.created;
-    a.appendChild(date);
-    li.appendChild(a);
+    meta.appendChild(date);
+    const aiLevel = document.createElement("a");
+    aiLevel.className = "ai-level";
+    aiLevel.textContent = `ai-level-${note.metadata.aiContribution}`;
+    aiLevel.href =
+      "https://www.visidata.org/blog/2026/ai/#self-assessed-ai-level-for-contributions";
+    aiLevel.target = "_blank";
+    aiLevel.rel = "noopener";
+    meta.appendChild(aiLevel);
+    header.appendChild(meta);
+
+    li.appendChild(header);
 
     if (note.metadata.previewSource) {
       const previewContainer = document.createElement("div");

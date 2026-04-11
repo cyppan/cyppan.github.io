@@ -19,6 +19,7 @@ const VALID_NOTE = `(defnote "Test Note"
   {:slug 'test-note
    :tags [:test]
    :public true
+   :ai-contribution :level-2
    :created "2026-03-20"}
 
   "Some content.")
@@ -28,12 +29,14 @@ const VALID_NOTE_2 = `(defnote "Second Note"
   {:slug 'second-note
    :tags [:demo]
    :public true
+   :ai-contribution :level-0
    :created "2026-03-19"})
 `;
 
 const PRIVATE_NOTE = `(defnote "Private Note"
   {:slug 'private-note
    :tags [:secret]
+   :ai-contribution :level-1
    :created "2026-03-21"}
 
   "Private content.")

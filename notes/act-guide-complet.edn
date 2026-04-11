@@ -2,6 +2,7 @@
   {:slug 'act-guide-complet
    :tags [:deep-research :psychology]
    :public true
+   :ai-contribution :level-9
    :created "2026-04-11"}
 
   (preview

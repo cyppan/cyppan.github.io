@@ -6,6 +6,7 @@ describe("parseNote", () => {
     const source = `(defnote "Hello World"
   {:slug 'hello-world
    :tags [:test]
+   :ai-contribution :level-2
    :created "2026-03-20"}
 
   "A minimal test note.")`;
@@ -19,6 +20,7 @@ describe("parseNote", () => {
     expect(result.note.metadata.created).toBe("2026-03-20");
     expect(result.note.metadata.title).toBe("Hello World");
     expect(result.note.metadata.public).toBe(false);
+    expect(result.note.metadata.aiContribution).toBe(2);
   });
 
   test("full metadata", () => {
@@ -26,6 +28,7 @@ describe("parseNote", () => {
   {:slug 'my-note
    :tags [:architecture :personal-tools]
    :public true
+   :ai-contribution :level-3
    :created "2026-03-20"}
 
   "Some content.")`;
@@ -42,11 +45,13 @@ describe("parseNote", () => {
     expect(result.note.metadata.public).toBe(true);
     expect(result.note.metadata.created).toBe("2026-03-20");
     expect(result.note.metadata.title).toBe("My Note Title");
+    expect(result.note.metadata.aiContribution).toBe(3);
   });
 
   test("no slug returns error", () => {
     const source = `(defnote "No Slug"
   {:tags [:test]
+   :ai-contribution :level-0
    :created "2026-03-20"}
 
   "Some text.")`;
@@ -55,6 +60,50 @@ describe("parseNote", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.errors[0]?.message).toContain(":slug");
+  });
+
+  test("no ai-contribution returns error", () => {
+    const source = `(defnote "No AI Level"
+  {:slug 'no-ai-level
+   :tags [:test]
+   :created "2026-03-20"}
+
+  "Some text.")`;
+
+    const result = parseNote(source);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors[0]?.message).toContain(":ai-contribution");
+  });
+
+  test("invalid ai-contribution returns error", () => {
+    const source = `(defnote "Bad Level"
+  {:slug 'bad-level
+   :ai-contribution :level-11
+   :created "2026-03-20"}
+
+  "Some text.")`;
+
+    const result = parseNote(source);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors[0]?.message).toContain(":ai-contribution");
+  });
+
+  test("ai-contribution boundary values", () => {
+    for (const level of [0, 10]) {
+      const source = `(defnote "Boundary"
+  {:slug 'boundary
+   :ai-contribution :level-${level}
+   :created "2026-03-20"}
+
+  "Content.")`;
+
+      const result = parseNote(source);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.note.metadata.aiContribution).toBe(level);
+    }
   });
 
   test("no title string returns error", () => {
@@ -88,7 +137,7 @@ describe("extractMetadata", () => {
   test("returns metadata on valid input", () => {
     const source = `(defnote "Test Note"
   {:slug 'test-note
-   :tags [:a :b] :public true :created "2026-03-20"})`;
+   :tags [:a :b] :public true :ai-contribution :level-4 :created "2026-03-20"})`;
 
     const meta = extractMetadata(source);
     expect(meta).not.toBeNull();
@@ -96,6 +145,7 @@ describe("extractMetadata", () => {
     expect(meta?.title).toBe("Test Note");
     expect(meta?.tags).toEqual(["a", "b"]);
     expect(meta?.public).toBe(true);
+    expect(meta?.aiContribution).toBe(4);
   });
 
   test("returns null on invalid input", () => {

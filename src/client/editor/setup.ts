@@ -12,6 +12,7 @@ import {
   keymap,
   lineNumbers,
 } from "@codemirror/view";
+import { aiLevelDecoration } from "./ai-level.js";
 import { blockquoteDecoration } from "./blockquote.js";
 import { dslWidgets } from "./decorations.js";
 import { fencedCodeDecoration } from "./fenced-code.js";
@@ -46,6 +47,7 @@ export function createEditor(options: {
     dslWidgets(),
     tableDecoration(),
     fencedCodeDecoration(),
+    aiLevelDecoration(),
     lineNumbers(),
     ednFoldGutter(),
     bracketMatching(),

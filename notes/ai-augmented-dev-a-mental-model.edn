@@ -2,6 +2,7 @@
   {:slug 'ai-augmented-dev-a-mental-model
    :tags [:ai-automation :harness-engineering]
    :public true
+   :ai-contribution :level-5
    :created "2026-04-02"}
 
   (preview
