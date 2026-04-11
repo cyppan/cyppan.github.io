@@ -66,7 +66,7 @@ A note is a `defnote` form in an `.edn` file:
 - **Container forms** group related items: `(comparaisons "## Title" (comparaison "### ..." ...) (comparaison "### ..." ...))`. They can have an optional intro string before their children.
 - **`(preview ... (insights ...))` pattern**: every note starts with a preview (summary paragraph) and insights (key bullet points).
 - **`(toc)`**: auto-generated from sibling forms. Supports both forms with a String first arg (leaf entries) and container forms without one (grouping nodes with children). Strings are truncated to first line and capped at 80 chars.
-- **Metadata**: `:slug` (required, kebab-case symbol), `:tags` (vector of keywords), `:created` (date string).
+- **Metadata**: `:slug` (required, kebab-case symbol), `:tags` (vector of keywords), `:created` (date string), `:ai-contribution` (required, keyword `:level-0` to `:level-10` — use `:level-0` for human-written notes). Missing `:ai-contribution` causes the note to be silently skipped by the server.
 - **File location**: public notes in `notes/`, private notes in `notes/private/`.
 
 ## Design Philosophy
