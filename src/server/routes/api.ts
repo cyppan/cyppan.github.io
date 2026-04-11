@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import {
   deleteNote,
   getIndex,
+  hasNote,
   isValidSlug,
   NoteNotFoundError,
   NoteParseError,
@@ -48,7 +49,7 @@ const isProd = process.env.NODE_ENV === "production";
 
 if (!isProd) {
   api.post("/notes", async (c) => {
-    let body: { slug?: string; title?: string };
+    let body: { slug?: string; title?: string; public?: boolean };
     try {
       body = await c.req.json();
     } catch {
@@ -57,6 +58,7 @@ if (!isProd) {
 
     let slug: string;
     const title = body.title ?? "";
+    const isPublic = body.public ?? false;
 
     if (body.slug) {
       slug = body.slug;
@@ -70,16 +72,16 @@ if (!isProd) {
       return c.json({ error: "Invalid slug format" }, 400);
     }
 
-    // Check for conflict
-    const file = Bun.file(path.join(notesDir, `${slug}.edn`));
-    if (await file.exists()) {
+    if (hasNote(slug)) {
       return c.json({ error: "Note already exists" }, 409);
     }
 
     const today = new Date().toISOString().slice(0, 10);
     const heading = title || slug;
-    const source = `(defnote ${slug}
-  {:tags []
+    const publicLine = isPublic ? "\n   :public true" : "";
+    const source = `(defnote "${heading}"
+  {:slug '${slug}
+   :tags []${publicLine}
    :created "${today}"}
 
   "# ${heading}")
@@ -105,9 +107,7 @@ if (!isProd) {
       return c.json({ error: "Invalid slug format" }, 400);
     }
 
-    // Check note exists
-    const file = Bun.file(path.join(notesDir, `${slug}.edn`));
-    if (!(await file.exists())) {
+    if (!hasNote(slug)) {
       return c.json({ error: "Note not found" }, 404);
     }
 

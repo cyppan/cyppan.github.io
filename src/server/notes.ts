@@ -1,4 +1,4 @@
-import { type FSWatcher, watch } from "node:fs";
+import { existsSync, type FSWatcher, watch } from "node:fs";
 import path from "node:path";
 import {
   extractMetadata,
@@ -47,24 +47,30 @@ function notePath(notesDir: string, slug: string): string {
   return path.join(notesDir, `${slug}.edn`);
 }
 
+function privateDirPath(notesDir: string): string {
+  return path.join(notesDir, "private");
+}
+
 export interface NoteEntry {
   metadata: NoteMetadata;
   source: string;
 }
 
-export async function buildIndex(
-  notesDir: string,
-): Promise<Map<string, NoteEntry>> {
-  const result = new Map<string, NoteEntry>();
-  const glob = new Bun.Glob("*.edn");
+async function scanDir(
+  dir: string,
+  result: Map<string, NoteEntry>,
+): Promise<void> {
+  if (!existsSync(dir)) return;
 
-  for await (const filename of glob.scan({ cwd: notesDir })) {
-    const filePath = path.join(notesDir, filename);
+  const glob = new Bun.Glob("*.edn");
+  for await (const filename of glob.scan({ cwd: dir })) {
+    const filePath = path.join(dir, filename);
     try {
       const source = await Bun.file(filePath).text();
       const metadata = extractMetadata(source);
       if (metadata) {
         result.set(metadata.slug, { metadata, source });
+        noteDirs.set(metadata.slug, dir);
       } else {
         console.warn(`Skipping malformed note: ${filename}`);
       }
@@ -72,6 +78,16 @@ export async function buildIndex(
       console.warn(`Error reading ${filename}:`, err);
     }
   }
+}
+
+export async function buildIndex(
+  notesDir: string,
+): Promise<Map<string, NoteEntry>> {
+  const result = new Map<string, NoteEntry>();
+  noteDirs.clear();
+
+  await scanDir(notesDir, result);
+  await scanDir(privateDirPath(notesDir), result);
 
   return result;
 }
@@ -84,18 +100,31 @@ function sortedIndex(idx: Map<string, NoteEntry>): NoteEntry[] {
   });
 }
 
+async function findNoteFile(
+  notesDir: string,
+  slug: string,
+): Promise<{ file: ReturnType<typeof Bun.file>; dir: string } | null> {
+  const candidates = [
+    noteDirs.get(slug),
+    notesDir,
+    privateDirPath(notesDir),
+  ].filter(Boolean) as string[];
+
+  for (const dir of new Set(candidates)) {
+    const file = Bun.file(notePath(dir, slug));
+    if (await file.exists()) return { file, dir };
+  }
+  return null;
+}
+
 export async function readNote(
   notesDir: string,
   slug: string,
 ): Promise<{ source: string; metadata: NoteMetadata | null }> {
-  const filePath = notePath(notesDir, slug);
-  const file = Bun.file(filePath);
+  const found = await findNoteFile(notesDir, slug);
+  if (!found) throw new NoteNotFoundError(slug);
 
-  if (!(await file.exists())) {
-    throw new NoteNotFoundError(slug);
-  }
-
-  const source = await file.text();
+  const source = await found.file.text();
   const metadata = extractMetadata(source);
   return { source, metadata };
 }
@@ -110,11 +139,21 @@ export async function writeNote(
     throw new NoteParseError(result.errors);
   }
 
-  await Bun.write(notePath(notesDir, slug), source);
-
-  // Update in-memory index
   const metadata = result.note.metadata;
+  const targetDir = metadata.public ? notesDir : privateDirPath(notesDir);
+  const currentDir = noteDirs.get(slug);
+
+  await Bun.write(notePath(targetDir, slug), source);
+
+  if (currentDir && currentDir !== targetDir) {
+    const oldFile = Bun.file(notePath(currentDir, slug));
+    if (await oldFile.exists()) {
+      await oldFile.delete();
+    }
+  }
+
   index.set(slug, { metadata, source });
+  noteDirs.set(slug, targetDir);
 
   return metadata;
 }
@@ -123,25 +162,24 @@ export async function deleteNote(
   notesDir: string,
   slug: string,
 ): Promise<void> {
-  const filePath = notePath(notesDir, slug);
-  const file = Bun.file(filePath);
+  const found = await findNoteFile(notesDir, slug);
+  if (!found) throw new NoteNotFoundError(slug);
 
-  if (!(await file.exists())) {
-    throw new NoteNotFoundError(slug);
-  }
-
-  await Bun.file(filePath).delete();
-
-  // Update in-memory index
+  await found.file.delete();
   index.delete(slug);
+  noteDirs.delete(slug);
 }
 
 // --- In-memory index singleton ---
 
 let index: Map<string, NoteEntry> = new Map();
+const noteDirs: Map<string, string> = new Map();
 let watcher: FSWatcher | null = null;
+let privateWatcher: FSWatcher | null = null;
 
 export async function initIndex(notesDir: string): Promise<void> {
+  const privDir = privateDirPath(notesDir);
+  await Bun.$`mkdir -p ${privDir}`.quiet();
   index = await buildIndex(notesDir);
   console.log(`Index initialized: ${index.size} notes`);
 }
@@ -150,20 +188,20 @@ export function getIndex(): NoteEntry[] {
   return sortedIndex(index);
 }
 
-export function startWatcher(notesDir: string): void {
-  if (watcher) {
-    watcher.close();
-  }
+export function hasNote(slug: string): boolean {
+  return index.has(slug);
+}
 
+function createDirWatcher(dir: string): FSWatcher {
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-  watcher = watch(notesDir, (_event, filename) => {
+  return watch(dir, (_event, filename) => {
     if (!filename?.endsWith(".edn")) return;
 
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
       const slug = filename.replace(/\.edn$/, "");
-      const filePath = path.join(notesDir, filename);
+      const filePath = path.join(dir, filename);
 
       try {
         const file = Bun.file(filePath);
@@ -172,21 +210,38 @@ export function startWatcher(notesDir: string): void {
           const metadata = extractMetadata(source);
           if (metadata) {
             index.set(slug, { metadata, source });
+            noteDirs.set(slug, dir);
           }
         } else {
           index.delete(slug);
+          noteDirs.delete(slug);
         }
       } catch {
-        // File may have been removed between check and read
         index.delete(slug);
+        noteDirs.delete(slug);
       }
     }, 100);
   });
+}
+
+export function startWatcher(notesDir: string): void {
+  stopWatcher();
+  watcher = createDirWatcher(notesDir);
+  const privDir = privateDirPath(notesDir);
+  try {
+    privateWatcher = createDirWatcher(privDir);
+  } catch {
+    // private dir may not exist
+  }
 }
 
 export function stopWatcher(): void {
   if (watcher) {
     watcher.close();
     watcher = null;
+  }
+  if (privateWatcher) {
+    privateWatcher.close();
+    privateWatcher = null;
   }
 }

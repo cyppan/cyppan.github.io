@@ -42,6 +42,7 @@ test("hello world", () => {
   - `(media ...)`: the form stays visible and editable. An image preview is rendered below/after it as a visual aid.
   - `(ref ...)`: the form stays visible and editable. In **read-only mode**, the ref text is rendered as a clickable link. In **edit mode**, it is plain text (no link behavior).
   - `(code ...)`: the DSL wrapping form always stays visible. In **edit mode**, the string content is a plain multiline editor (markdown nested parsing disabled for code strings). In **read-only mode**, a `CodeWidget` is inserted after the form showing the code syntax-highlighted in the target language (just `<pre><code>`, no labels or wrappers).
+  - `(toc)`: auto-generated table of contents. The form content is populated automatically from the document structure by a `ViewPlugin` in `src/client/editor/toc.ts`. Markdown parsing is disabled inside the toc form (strings stay plain monospace). Clickable `↗` scroll links (`TocLinkWidget`) appear next to each entry in both edit and read-only modes.
 - When adding new DSL form support: (1) the form always renders as raw EDN with syntax highlighting, (2) only add a companion widget when the rendered output adds something the text alone can't convey (e.g., an image), (3) never wrap in styled containers with labels or colored backgrounds.
 
 ## TypeScript Rules
@@ -51,6 +52,17 @@ test("hello world", () => {
 ## Code Quick Checks
 
 Use `bun run check` to check for type errors and syntax errors, it's fast you can use it heavily during development.
+
+## Private Notes & Encryption
+
+Private notes (`:public false` or no `:public` key) live in `notes/private/`. Public notes live in `notes/`. The server scans both directories. When a note's `:public` flag changes, `writeNote` moves the file between directories automatically.
+
+Encryption is a git-layer concern, not a server concern. Decrypted `.edn` files in `notes/private/` are gitignored. Encrypted `.edn.age` files are tracked.
+
+- `bun run decrypt` — prompts for passphrase, decrypts `notes/private/*.edn.age` → `.edn`
+- `bun run encrypt` — prompts for passphrase, encrypts `notes/private/*.edn` → `.edn.age`, deletes plaintext
+
+Uses the `age-encryption` npm package (standard age format, interoperable with `age` CLI). The passphrase is typed interactively every time, never stored in env vars or files.
 
 ## Frontend
 
@@ -73,6 +85,8 @@ The editor uses a custom Lezer grammar for EDN syntax, with `parseMixed` nesting
 - **Any future feature** touching the parse tree inside strings will face the same issue: the mounted markdown tree takes over. The pattern for working around it: use a top-level facet/service (like `indentService`, `foldService`) that walks up the tree to find the EDN ancestor node, bypassing the inner markdown language. For visual features (like fold gutter), replace the standard CM6 extension with a custom one that only queries EDN nodes.
 
 ### Overlay vs. non-overlay mounting (critical)
+
+Markdown nesting is skipped for strings inside `(code ...)` forms and strings inside `(toc ...)` forms (at any nesting depth). The `parseMixed` callback in `language.ts` checks the parent/ancestor List's first Symbol to decide. For toc, it walks up ancestor nodes to find a `(toc ...)` container.
 
 The `parseMixed` wrapper uses **overlay mounting** (via `computeDedentOverlays`) to strip the string's base indentation before the markdown parser sees it. This prevents markdown from misinterpreting indented prose as code blocks (4+ spaces = code in CommonMark).
 
@@ -124,8 +138,9 @@ DSL forms are **never replaced** — the EDN text always stays visible and edita
 - `(media ...)`: a `MediaWidget` (image preview) is inserted after the form as a block widget.
 - `(ref ...)`: in read-only mode, a `RefWidget` (clickable link) is inserted after the form. In edit mode, no widget — the DSL text is sufficient.
 - `(code ...)`: in edit mode, the string content is a plain multiline editor (no markdown nesting). In read-only mode, a `CodeWidget` (syntax-highlighted `<pre><code>`) is inserted after the form. The DSL wrapping form stays visible in both modes.
+- `(toc)`: auto-generated from document structure by `src/client/editor/toc.ts`. A `ViewPlugin` scans sibling forms after `(toc)` inside `defnote`, builds a filtered tree (excludes leaves with ≤1 arg and forms whose first arg isn't a String), and rewrites the toc form content. Updates on a 200ms debounce after doc changes, also runs on initial load. Changes are `Transaction.addToHistory.of(false)` (invisible to undo). `TocLinkWidget` (clickable `↗`) decorations appear in both edit and read-only modes, matching TOC entries to content forms by slugified heading text.
 
-Widget classes (`src/client/editor/widgets/`): `MediaWidget` (image preview), `RefWidget` (clickable link for read-only mode), `CodeWidget` (syntax-highlighted code for read-only mode). Each extends `WidgetType` with `toDOM()` and `eq()`.
+Widget classes (`src/client/editor/widgets/`): `MediaWidget` (image preview), `RefWidget` (clickable link for read-only mode), `CodeWidget` (syntax-highlighted code for read-only mode), `TocLinkWidget` (clickable scroll link for TOC entries). Each extends `WidgetType` with `toDOM()` and `eq()`.
 
 ### Fenced code block decoration (`src/client/editor/fenced-code.ts`)
 

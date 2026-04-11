@@ -129,14 +129,28 @@ const mixedParser = ednParser.configure({
   ],
   wrap: parseMixed((node, input) => {
     if (node.name === "StringContent") {
-      // Skip markdown nesting for code form strings:
-      // StringContent → String → List(code ...)
+      // Skip markdown nesting for code and toc form strings:
+      // StringContent → String → List(code/toc entry ...)
       const strNode = node.node.parent;
       const listNode = strNode?.parent;
       if (listNode?.name === "List") {
         const sym = listNode.getChild("Symbol");
         if (sym && input.read(sym.from, sym.to) === "code") {
           return null;
+        }
+        // Also skip for strings inside toc: walk up to find (toc ...) ancestor
+        let ancestor = listNode.parent;
+        while (ancestor) {
+          if (ancestor.name === "List") {
+            const ancestorSym = ancestor.getChild("Symbol");
+            if (
+              ancestorSym &&
+              input.read(ancestorSym.from, ancestorSym.to) === "toc"
+            ) {
+              return null;
+            }
+          }
+          ancestor = ancestor.parent;
         }
       }
 

@@ -1,5 +1,5 @@
 import type { NoteData } from "../data.js";
-import { fetchIndex } from "../data.js";
+import { createNote, fetchIndex } from "../data.js";
 import { createPreviewEditor } from "../editor/preview.js";
 
 function getActiveTag(): string | null {
@@ -29,6 +29,24 @@ function renderList(target: HTMLElement, notes: NoteData[]): void {
   const h1 = document.createElement("h1");
   h1.textContent = "@cyppan notes";
   header.appendChild(h1);
+  if (import.meta.env.DEV) {
+    for (const isPublic of [true, false]) {
+      const btn = document.createElement("button");
+      btn.className = "new-note-btn";
+      btn.textContent = isPublic ? "+ Public" : "+ Private";
+      btn.addEventListener("click", async () => {
+        const title = prompt("Note title:");
+        if (!title) return;
+        try {
+          const slug = await createNote(title, isPublic);
+          window.location.pathname = `/edit/${slug}`;
+        } catch (err) {
+          alert(`Failed to create note: ${err}`);
+        }
+      });
+      header.appendChild(btn);
+    }
+  }
   target.appendChild(header);
 
   // Tag filter

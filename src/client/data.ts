@@ -23,3 +23,20 @@ export async function fetchIndex(): Promise<NoteData[]> {
   if (!res.ok) throw new Error(`${res.status}`);
   return res.json();
 }
+
+export async function createNote(
+  title: string,
+  isPublic: boolean,
+): Promise<string> {
+  const res = await fetch("/api/notes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, public: isPublic }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? `${res.status}`);
+  }
+  const { slug } = await res.json();
+  return slug;
+}

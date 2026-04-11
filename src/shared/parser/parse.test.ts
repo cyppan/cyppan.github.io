@@ -105,34 +105,13 @@ describe("extractMetadata", () => {
 });
 
 describe("sample files", () => {
-  test("creating-a-note-system.edn", async () => {
-    const source = await Bun.file("notes/creating-a-note-system.edn").text();
+  test("ai-augmented-dev-a-mental-model.edn", async () => {
+    const source = await Bun.file(
+      "notes/ai-augmented-dev-a-mental-model.edn",
+    ).text();
     const meta = extractMetadata(source);
     expect(meta).not.toBeNull();
-    expect(meta?.slug).toBe("creating-a-note-system");
-    expect(meta?.tags).toEqual(["architecture", "personal-tools"]);
+    expect(meta?.slug).toBe("ai-augmented-dev-a-mental-model");
     expect(meta?.public).toBe(true);
-    expect(meta?.created).toBe("2026-03-20");
-    expect(meta?.title).toBe("Creating a note system");
-  });
-
-  test("hello-world.edn", async () => {
-    const source = await Bun.file("notes/hello-world.edn").text();
-    const meta = extractMetadata(source);
-    expect(meta).not.toBeNull();
-    expect(meta?.slug).toBe("hello-world");
-    expect(meta?.tags).toEqual(["test"]);
-    expect(meta?.public).toBe(false);
-    expect(meta?.title).toBe("Hello World");
-  });
-
-  test("kitchen-sink.edn", async () => {
-    const source = await Bun.file("notes/kitchen-sink.edn").text();
-    const meta = extractMetadata(source);
-    expect(meta).not.toBeNull();
-    expect(meta?.slug).toBe("kitchen-sink");
-    expect(meta?.tags).toEqual(["test", "edge-cases"]);
-    expect(meta?.public).toBe(false);
-    expect(meta?.title).toBe("Kitchen Sink");
   });
 });

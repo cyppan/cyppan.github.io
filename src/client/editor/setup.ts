@@ -25,6 +25,7 @@ import { notesLang } from "./language.js";
 import { proseDecoration } from "./prose.js";
 import { tableDecoration } from "./table.js";
 import { notesHighlightExt, notesTheme, readTheme } from "./theme.js";
+import { tocAutoGen } from "./toc.js";
 import { wrapIndent } from "./wrap-indent.js";
 
 export function createEditor(options: {
@@ -68,6 +69,10 @@ export function createEditor(options: {
       readTheme,
       autoFoldCode(),
     );
+  }
+
+  if (!readonly) {
+    extensions.push(tocAutoGen());
   }
 
   if (onSave) {

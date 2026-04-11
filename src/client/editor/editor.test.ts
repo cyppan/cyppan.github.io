@@ -6,6 +6,7 @@ import { NodeProp } from "@lezer/common";
 import { highlightTree } from "@lezer/highlight";
 import { computeDedentOverlays, notesLang } from "./language.js";
 import { notesHighlightExt, testHighlightStyle } from "./theme.js";
+import { generateTocContent } from "./toc.js";
 
 // Minimal Input implementation for testing computeDedentOverlays
 function stringInput(text: string): Input {
@@ -445,5 +446,139 @@ describe("computeDedentOverlays", () => {
     expect(overlays?.[2]).toEqual({ from: 16, to: 23 });
     // "two" (stripped 2)
     expect(overlays?.[3]).toEqual({ from: 25, to: text.length });
+  });
+});
+
+// ---------- TOC generation ----------
+
+function tocState(doc: string) {
+  const state = EditorState.create({
+    doc,
+    extensions: [notesLang(), notesHighlightExt],
+  });
+  const tree = ensureSyntaxTree(state, state.doc.length, 5000);
+  if (!tree) throw new Error("Failed to parse tree");
+  return { state, tree };
+}
+
+describe("generateTocContent", () => {
+  test("generates TOC from h2/h3 structure", () => {
+    const doc = `(defnote "# Test"
+  {:slug 'test :public true :created "2026-01-01"}
+
+  (toc)
+
+  (h2 "## First Section"
+    "some content"
+    (h3 "### Subsection A"
+      "sub content"))
+
+  (h2 "## Second Section"
+    "more content"))`;
+    const { tree } = tocState(doc);
+    const result = generateTocContent(tree, doc);
+    expect(result).toBeDefined();
+    expect(result?.newContent).toContain('(h2 "## First Section"');
+    expect(result?.newContent).toContain('(h3 "### Subsection A")');
+    expect(result?.newContent).toContain('(h2 "## Second Section")');
+  });
+
+  test("excludes leaf forms (single argument)", () => {
+    const doc = `(defnote "# Test"
+  {:slug 'test :public true :created "2026-01-01"}
+
+  (toc)
+
+  (h2 "## Real Section"
+    "content here")
+
+  (solo "## Only One Arg"))`;
+    const { tree } = tocState(doc);
+    const result = generateTocContent(tree, doc);
+    expect(result).toBeDefined();
+    expect(result?.newContent).toContain('(h2 "## Real Section")');
+    expect(result?.newContent).not.toContain("solo");
+  });
+
+  test("excludes forms whose first arg is not a string", () => {
+    const doc = `(defnote "# Test"
+  {:slug 'test :public true :created "2026-01-01"}
+
+  (toc)
+
+  (h2 "## Good Section"
+    "content")
+
+  (media {:src "/img.png" :alt "image"}))`;
+    const { tree } = tocState(doc);
+    const result = generateTocContent(tree, doc);
+    expect(result).toBeDefined();
+    expect(result?.newContent).toContain('(h2 "## Good Section")');
+    expect(result?.newContent).not.toContain("media");
+  });
+
+  test("replaces existing toc content", () => {
+    const doc = `(defnote "# Test"
+  {:slug 'test :public true :created "2026-01-01"}
+
+  (toc
+    (old "## Stale Entry"))
+
+  (h2 "## Fresh Section"
+    "content"))`;
+    const { tree } = tocState(doc);
+    const result = generateTocContent(tree, doc);
+    expect(result).toBeDefined();
+    expect(result?.newContent).toContain('(h2 "## Fresh Section")');
+    expect(result?.newContent).not.toContain("old");
+    expect(result?.newContent).not.toContain("Stale");
+  });
+
+  test("returns null when no toc form exists", () => {
+    const doc = `(defnote "# Test"
+  {:slug 'test :public true :created "2026-01-01"}
+
+  (h2 "## Section"
+    "content"))`;
+    const { tree } = tocState(doc);
+    const result = generateTocContent(tree, doc);
+    expect(result).toBeNull();
+  });
+
+  test("works with arbitrary form names", () => {
+    const doc = `(defnote "# Test"
+  {:slug 'test :public true :created "2026-01-01"}
+
+  (toc)
+
+  (references "## References"
+    "book one"
+    "book two"))`;
+    const { tree } = tocState(doc);
+    const result = generateTocContent(tree, doc);
+    expect(result).toBeDefined();
+    expect(result?.newContent).toContain('(references "## References")');
+  });
+
+  test("produces correct indentation", () => {
+    const doc = `(defnote "# Test"
+  {:slug 'test :public true :created "2026-01-01"}
+
+  (toc)
+
+  (h2 "## A"
+    "content"
+    (h3 "### B"
+      "sub content")))`;
+    const { tree } = tocState(doc);
+    const result = generateTocContent(tree, doc);
+    expect(result).toBeDefined();
+    const lines = result?.newContent.split("\n") ?? [];
+    // First line is empty (newline after "toc")
+    expect(lines[0]).toBe("");
+    // Top-level entry at tocCol(2) + 2 = 4 spaces
+    expect(lines[1]).toMatch(/^ {4}\(h2 /);
+    // Nested entry at 6 spaces
+    expect(lines[2]).toMatch(/^ {6}\(h3 /);
   });
 });

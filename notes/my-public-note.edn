@@ -1,0 +1,7 @@
+(defnote "My public note"
+  {:slug 'my-public-note
+   :tags []
+   :public true
+   :created "2026-04-11"}
+
+  "# My public note")

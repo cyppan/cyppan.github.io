@@ -40,3 +40,9 @@ src/shared/parser/parser.terms.js
 
 # Playwright MCP
 .playwright-mcp/
+
+# Google Keep imports (local data)
+gkeep/
+
+# Decrypted private notes (never commit plaintext)
+notes/private/*.edn
